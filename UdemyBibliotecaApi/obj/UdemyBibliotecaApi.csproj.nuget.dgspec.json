@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {}
+    "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {}
   },
   "projects": {
-    "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {
+    "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+        "projectUniqueName": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
         "projectName": "UdemyBibliotecaApi",
-        "projectPath": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+        "projectPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
         "packagesPath": "C:\\Users\\Wei\\.nuget\\packages\\",
-        "outputPath": "d:\\DotNetProjects\\UdemyBibliotecaApi\\obj\\",
+        "outputPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Wei\\AppData\\Roaming\\NuGet\\NuGet.Config",

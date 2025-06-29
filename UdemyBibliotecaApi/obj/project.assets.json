@@ -4903,11 +4903,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+      "projectUniqueName": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
       "projectName": "UdemyBibliotecaApi",
-      "projectPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+      "projectPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
       "packagesPath": "C:\\Users\\Wei\\.nuget\\packages\\",
-      "outputPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\obj\\",
+      "outputPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Wei\\AppData\\Roaming\\NuGet\\NuGet.Config",

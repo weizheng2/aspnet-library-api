@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+66436c837ac198693ebd0f64dffba0732543d43e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1394061cc83f50bfe44d45bb60f7b447136f6e12")]
 [assembly: System.Reflection.AssemblyProductAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

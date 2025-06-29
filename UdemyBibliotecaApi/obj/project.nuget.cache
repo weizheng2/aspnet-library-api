@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "IM0HcEACYS0=",
+  "dgSpecHash": "1i1JjwvWAWs=",
   "success": true,
-  "projectFilePath": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+  "projectFilePath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Wei\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Wei\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
