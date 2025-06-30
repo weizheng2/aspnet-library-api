@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("0b5cb40f-0cb0-480c-9424-60f6640ea0e3")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1394061cc83f50bfe44d45bb60f7b447136f6e12")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6f60574daf89754212b9c78f3165db81434b0852")]
 [assembly: System.Reflection.AssemblyProductAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UdemyBibliotecaApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
