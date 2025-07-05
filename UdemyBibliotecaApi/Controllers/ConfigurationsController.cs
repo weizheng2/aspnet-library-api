@@ -2,27 +2,34 @@ namespace UdemyBibliotecaApi.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
-    using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
+    using UdemyBibliotecaApi.OptionsConfiguration;
 
     [ApiController]
     [Route("api/configurations")]
     public class ConfigurationsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly PersonOptions _personOptions;
 
-        public ConfigurationsController(IConfiguration configuration)
+        public ConfigurationsController(IConfiguration configuration, IOptions<PersonOptions> personOptions)
         {
             _configuration = configuration;
+            _personOptions = personOptions.Value;
         }
 
-        [HttpGet]
-        public ActionResult<string> Get()
+        [HttpGet("person-options")]
+        public ActionResult GetPersonOptions()
         {
-            var lastName1 = _configuration["lastName"];
+            return Ok(_personOptions);
+        }
 
-            //var lastName2 = _configuration.GetValue<string>("ConnectionStrings:DefaultConnection");
-            var lastName2 = _configuration.GetValue<string>("lastName");
-            return lastName2!;
+        [HttpGet("appsettings")]
+        public ActionResult GetDirectlyFromAppSettings()
+        {
+            var name = _configuration.GetValue<string>("PersonOptions:Name");
+            var age = _configuration.GetValue<string>("PersonOptions:Age");
+            return Ok(name + " is " + age + " years old.");
         }
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ namespace UdemyBibliotecaApi.Controllers
 {
     [ApiController]
     [Route("api/books/{bookId:int}/comments")]
+    [Authorize]
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -51,7 +53,7 @@ namespace UdemyBibliotecaApi.Controllers
             var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
             if (book == null)
                 return NotFound();
-    
+
             var comment = createCommentDto.ToComment(bookId);
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();

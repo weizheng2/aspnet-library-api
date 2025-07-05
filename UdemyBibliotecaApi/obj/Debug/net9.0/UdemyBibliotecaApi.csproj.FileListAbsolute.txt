@@ -331,3 +331,9 @@ d:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\obj\Debug\net9.0\refint\
 d:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\obj\Debug\net9.0\UdemyBibliotecaApi.pdb
 d:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\obj\Debug\net9.0\UdemyBibliotecaApi.genruntimeconfig.cache
 d:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\obj\Debug\net9.0\ref\UdemyBibliotecaApi.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.Extensions.Identity.Core.dll
+D:\DotNetProjects\UdemyBibliotecaApi\UdemyBibliotecaApi\bin\Debug\net9.0\Microsoft.Extensions.Identity.Stores.dll

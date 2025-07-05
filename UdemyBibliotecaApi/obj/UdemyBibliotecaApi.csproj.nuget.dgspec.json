@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {}
+    "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {}
   },
   "projects": {
-    "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {
+    "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+        "projectUniqueName": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
         "projectName": "UdemyBibliotecaApi",
-        "projectPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
+        "projectPath": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\UdemyBibliotecaApi.csproj",
         "packagesPath": "C:\\Users\\Wei\\.nuget\\packages\\",
-        "outputPath": "D:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\obj\\",
+        "outputPath": "d:\\DotNetProjects\\UdemyBibliotecaApi\\UdemyBibliotecaApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Wei\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -47,6 +47,14 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
             "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
               "target": "Package",
               "version": "[9.0.6, )"

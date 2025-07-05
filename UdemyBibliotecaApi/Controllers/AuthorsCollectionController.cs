@@ -1,12 +1,14 @@
 namespace UdemyBibliotecaApi.Controllers
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using UdemyBibliotecaApi.Data;
     using UdemyBibliotecaApi.DTOs;
 
-    [Route("api/authors-collection")]
     [ApiController]
+    [Route("api/authors-collection")]
+    [Authorize]
     public class AuthorsCollectionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -16,6 +18,7 @@ namespace UdemyBibliotecaApi.Controllers
         }
 
         [HttpGet("{ids}")] // api/authors-collection/1,2,3
+        [AllowAnonymous]//[Authorize]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorsByIds(string ids)
         {
             var idsList = new List<int>();
@@ -62,8 +65,8 @@ namespace UdemyBibliotecaApi.Controllers
             var authorsDto = authors.Select(a => a.ToGetAuthorDto()).ToList();
             var idsString = string.Join(",", authors.Select(a => a.Id));
 
-            return CreatedAtAction(nameof(GetAuthorsByIds), new { ids = idsString }, authorsDto); 
+            return CreatedAtAction(nameof(GetAuthorsByIds), new { ids = idsString }, authorsDto);
         }
-        
+
     }
 }

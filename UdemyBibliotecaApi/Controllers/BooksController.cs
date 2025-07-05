@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UdemyBibliotecaApi.Data;
@@ -8,6 +9,7 @@ namespace UdemyBibliotecaApi.Controllers
 {
     [ApiController]
     [Route("api/books")]
+    [Authorize]
     public class BooksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -21,17 +23,17 @@ namespace UdemyBibliotecaApi.Controllers
         {
             var books = await _context.Books.ToListAsync();
             var booksDto = books.Select(b => b.ToGetBookDto()).ToList();
-            
+
             return Ok(booksDto);
         }
-   
+
         [HttpGet("{id}")]
         public async Task<ActionResult<GetBookWithAuthorsAndCommentsDto>> GetBookById(int id)
         {
             var book = await _context.Books
                                     .Include(b => b.Authors)
                                         .ThenInclude(ab => ab.Author)
-                                    .Include(b => b.Comments)                  
+                                    .Include(b => b.Comments)
                                     .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null)
                 return NotFound();
@@ -58,11 +60,11 @@ namespace UdemyBibliotecaApi.Controllers
                 var notExistingAuthors = createBookDto.AuthorsId.Except(existingAuthors);
                 return BadRequest("Authors not found " + string.Join(", ", notExistingAuthors));
             }
-        
+
 
             var book = createBookDto.ToBook();
             OrderAuthors(book);
-            
+
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
 
@@ -97,7 +99,7 @@ namespace UdemyBibliotecaApi.Controllers
                 var notExistingAuthors = updateBookDto.AuthorsId.Except(existingAuthors);
                 return BadRequest("Authors not found " + string.Join(", ", notExistingAuthors));
             }
-        
+
             var book = await _context.Books
                                     .Include(a => a.Authors)
                                     .FirstOrDefaultAsync(a => a.Id == id);
@@ -111,7 +113,7 @@ namespace UdemyBibliotecaApi.Controllers
             book.Authors.Clear();
             foreach (var authorId in updateBookDto.AuthorsId)
                 book.Authors.Add(new AuthorBook { AuthorId = authorId, BookId = book.Id });
-      
+
             OrderAuthors(book);
 
             await _context.SaveChangesAsync();

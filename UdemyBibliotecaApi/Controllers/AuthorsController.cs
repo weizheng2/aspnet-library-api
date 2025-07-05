@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace UdemyBibliotecaApi.Controllers
 {
     [ApiController]
     [Route("api/authors")]
+    [Authorize]
     public class AuthorsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -45,7 +47,7 @@ namespace UdemyBibliotecaApi.Controllers
         public async Task<ActionResult> CreateAuthor(CreateAuthorDto createAuthorDto)
         {
             var author = createAuthorDto.ToAuthor();
-            
+
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
 
