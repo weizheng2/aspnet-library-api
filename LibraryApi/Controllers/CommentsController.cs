@@ -129,7 +129,9 @@ namespace LibraryApi.Controllers
             if (user.Id != comment.UserId)
                 return Forbid();
 
-            _context.Comments.Remove(comment);
+            comment.HasBeenDeleted = true;
+        
+            _context.Comments.Update(comment);
             await _context.SaveChangesAsync();
 
             return NoContent();

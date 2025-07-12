@@ -10,6 +10,13 @@ namespace LibraryApi.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Comment>().HasQueryFilter(c => !c.HasBeenDeleted);
+        }
+
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
 
