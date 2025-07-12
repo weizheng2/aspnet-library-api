@@ -15,6 +15,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Start Services
 builder.Services.AddDataProtection();
 
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(policy =>
+    {
+        policy.Expire(TimeSpan.FromMinutes(5));
+    });
+});
+
+builder.Services.AddStackExchangeRedisOutputCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+
 // Set allowed hosts with CORS
 var allowedHosts = builder.Configuration.GetSection("allowedHosts").Get<string[]>();
 builder.Services.AddCors(options =>
@@ -117,6 +130,7 @@ app.UseSwaggerUI();
 app.UseLogPetition();
 
 app.UseStaticFiles();
+app.UseOutputCache();
 
 app.UseCors();
 

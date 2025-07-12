@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.IO.Compression;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +9,7 @@ using LibraryApi.Services;
 using LibraryApi.Utils;
 using LibraryApi.Models;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace LibraryApi.Controllers
 {
@@ -20,16 +20,21 @@ namespace LibraryApi.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IArchiveStorage _archiveStorage;
+        private readonly IOutputCacheStore _outputCacheStore;
+
         private const string container = "authors";
-        public AuthorsController(ApplicationDbContext context, IArchiveStorage archiveStorage)
+        private const string cache = "get-authors";
+        public AuthorsController(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
         {
             _context = context;
             _archiveStorage = archiveStorage;
+            _outputCacheStore = outputCacheStore;
         }
 
         [HttpGet]
         [HttpGet("/authors-list")] // api/authors-list
         [AllowAnonymous]
+        [OutputCache(Tags = [cache])]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
         {
             var queryable = _context.Authors.AsQueryable();
@@ -104,6 +109,7 @@ namespace LibraryApi.Controllers
         [EndpointDescription("Get author by Id with books included. If the author doesnt exist, return 404.")]
         [ProducesResponseType<GetAuthorWithBooksDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [OutputCache(Tags = [cache])]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id)
         {
             var author = await _context.Authors
@@ -125,6 +131,9 @@ namespace LibraryApi.Controllers
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
 
+            // Remove cache since we added new data
+            await _outputCacheStore.EvictByTagAsync(cache, default);
+
             var authorDto = author.ToGetAuthorDto();
             return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
         }
@@ -142,6 +151,7 @@ namespace LibraryApi.Controllers
 
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
+            await _outputCacheStore.EvictByTagAsync(cache, default);
 
             var authorDto = author.ToGetAuthorDto();
             return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
@@ -165,6 +175,7 @@ namespace LibraryApi.Controllers
             author.Identification = updateAuthorDto.Identification;
 
             await _context.SaveChangesAsync();
+            await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
@@ -194,6 +205,7 @@ namespace LibraryApi.Controllers
 
             author.UpdateAuthorFromPatch(patchAuthorDto);
             await _context.SaveChangesAsync();
+            await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
@@ -211,6 +223,7 @@ namespace LibraryApi.Controllers
             await _context.SaveChangesAsync();
 
             await _archiveStorage.Remove(author.PhotoUrl, container);
+            await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
