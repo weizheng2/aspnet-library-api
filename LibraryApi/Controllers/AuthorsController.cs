@@ -8,6 +8,8 @@ using LibraryApi.Data;
 using LibraryApi.DTOs;
 using LibraryApi.Services;
 using LibraryApi.Utils;
+using LibraryApi.Models;
+using System.Linq.Expressions;
 
 namespace LibraryApi.Controllers
 {
@@ -38,6 +40,64 @@ namespace LibraryApi.Controllers
 
             return Ok(authorsDto);
         }
+
+        [HttpGet("with-filter")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<GetAuthorDto>>> GetAuthorsWithFilter([FromQuery] PaginationDto paginationDto, [FromQuery] AuthorFilterDto authorFilterDto)
+        {
+            var queryable = _context.Authors.AsQueryable();
+            if (!string.IsNullOrEmpty(authorFilterDto.Names))
+                queryable = queryable.Where(a => a.FirstName.Contains(authorFilterDto.Names));
+
+            if (!string.IsNullOrEmpty(authorFilterDto.LastNames))
+                queryable = queryable.Where(a => a.LastName.Contains(authorFilterDto.LastNames));
+
+            if (authorFilterDto.HasBooks.HasValue)
+            {
+                if (authorFilterDto.HasBooks.Value)
+                    queryable = queryable.Where(a => a.Books.Any());
+                else
+                    queryable = queryable.Where(a => !a.Books.Any());
+            }
+
+            if (authorFilterDto.IncludeBooks)
+                queryable = queryable.Include(a => a.Books).ThenInclude(ab => ab.Book);
+
+
+            if (authorFilterDto.HasPhoto.HasValue)
+            {
+                if (authorFilterDto.HasPhoto.Value)
+                    queryable = queryable.Where(a => a.PhotoUrl != null);
+                else
+                    queryable = queryable.Where(a => a.PhotoUrl == null);
+            }
+
+            var orderBySelectors = new Dictionary<AuthorOrderBy, Expression<Func<Author, object>>>
+            {
+                [AuthorOrderBy.FirstName] = a => a.FirstName!,
+                [AuthorOrderBy.LastName] = a => a.LastName!
+            };
+
+            if (authorFilterDto.OrderBy.HasValue && orderBySelectors.TryGetValue(authorFilterDto.OrderBy.Value, out var selector))
+                queryable = authorFilterDto.AscendingOrder ? queryable.OrderBy(selector) : queryable.OrderByDescending(selector);
+            else
+                queryable = queryable.OrderBy(a => a.FirstName);
+
+            await HttpContext.AddPaginationToHeader(queryable);
+            var authors = await queryable.Page(paginationDto).ToListAsync();
+
+            if (authorFilterDto.IncludeBooks)
+            {
+                var authorsDto = authors.Select(a => a.ToGetAuthorWithBooksDto()).ToList();
+                return Ok(authorsDto);
+            }
+            else
+            {
+                var authorsDto = authors.Select(a => a.ToGetAuthorDto()).ToList();
+                return Ok(authorsDto);
+            }
+        }
+
 
         [HttpGet("{id}")]
         [EndpointSummary("Get authour by Id")]
