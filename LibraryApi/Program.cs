@@ -9,6 +9,7 @@ using LibraryApi.Models;
 using LibraryApi.OptionsConfiguration;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +81,8 @@ builder.Services.AddCustomSwagger();
 var app = builder.Build();
 
 // Start Middlewares
+
+app.UseExceptionLogMiddleware();
 
 app.UseCustomSwagger();
 
