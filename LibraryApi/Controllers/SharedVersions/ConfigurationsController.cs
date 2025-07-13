@@ -1,12 +1,12 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using LibraryApi.OptionsConfiguration;
+using Asp.Versioning;
+
 namespace LibraryApi.Controllers
 {
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Options;
-    using LibraryApi.OptionsConfiguration;
-
-    [ApiController]
-    [Route("api/configurations")]
+    [ApiController, Route("api/v{version:apiVersion}/configurations")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     public class ConfigurationsController : ControllerBase
     {
         private readonly IConfiguration _configuration;

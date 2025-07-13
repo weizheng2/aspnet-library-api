@@ -10,13 +10,17 @@ using LibraryApi.Utils;
 using LibraryApi.Models;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.OutputCaching;
+using Asp.Versioning;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController]
-    [Route("api/authors")]
+    [ApiController, Route("api/v{version:apiVersion}/authors")]
+    [ApiVersion("1.0")]
     [Authorize(Policy = "isAdmin")]
-    public class AuthorsController : ControllerBase
+    [Tags("Authors")]
+    [ControllerName("AuthorsV1")]
+
+    public class AuthorsV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IArchiveStorage _archiveStorage;
@@ -24,7 +28,7 @@ namespace LibraryApi.Controllers
 
         private const string container = "authors";
         private const string cache = "get-authors";
-        public AuthorsController(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
+        public AuthorsV1Controller(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
         {
             _context = context;
             _archiveStorage = archiveStorage;
@@ -32,7 +36,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
-        [HttpGet("/authors-list")] // api/authors-list
         [AllowAnonymous]
         [OutputCache(Tags = [cache])]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
@@ -158,7 +161,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAuthor(int id,[FromForm] UpdateAuthorWithPhotoDto updateAuthorDto)
+        public async Task<ActionResult> UpdateAuthor(int id, [FromForm] UpdateAuthorWithPhotoDto updateAuthorDto)
         {
             var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
             if (author == null)

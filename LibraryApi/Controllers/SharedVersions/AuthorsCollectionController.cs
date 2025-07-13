@@ -1,13 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using LibraryApi.Data;
+using LibraryApi.DTOs;
+using Asp.Versioning;
+
 namespace LibraryApi.Controllers
 {
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using LibraryApi.Data;
-    using LibraryApi.DTOs;
-
-    [ApiController]
-    [Route("api/authors-collection")]
+    [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
+    [ApiVersion("1.0")]
     [Authorize(Policy = "isAdmin")]
     public class AuthorsCollectionController : ControllerBase
     {
@@ -18,7 +19,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{ids}")] // api/authors-collection/1,2,3
-        [AllowAnonymous]//[Authorize]
+        [AllowAnonymous]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorsByIds(string ids)
         {
             var idsList = new List<int>();

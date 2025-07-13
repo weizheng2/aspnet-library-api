@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using LibraryApi.Data;
 using LibraryApi.DTOs;
 using LibraryApi.Services;
+using Asp.Versioning;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController]
-    [Route("api/books/{bookId:int}/comments")]
+    [ApiController, Route("api/v{version:apiVersion}/books/{bookId:int}/comments")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     [Authorize]
     public class CommentsController : ControllerBase
     {

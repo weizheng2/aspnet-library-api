@@ -1,20 +1,21 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using LibraryApi.Data;
+using LibraryApi.DTOs;
+using LibraryApi.Models;
+using LibraryApi.Services;
+using Asp.Versioning;
+
 namespace LibraryApi.Controllers
 {
-    using System.IdentityModel.Tokens.Jwt;
-    using System.Security.Claims;
-    using System.Text;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.IdentityModel.Tokens;
-    using LibraryApi.Data;
-    using LibraryApi.DTOs;
-    using LibraryApi.Models;
-    using LibraryApi.Services;
-
-    [Route("api/users")]
-    [ApiController]
+    [ApiController, Route("api/v{version:apiVersion}/users")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     public class UsersController : ControllerBase
     {
         private readonly IConfiguration _configuration;

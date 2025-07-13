@@ -1,14 +1,12 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Mvc;
+using LibraryApi.Services;
+using Asp.Versioning;
+
 namespace LibraryApi.Controllers
 {
-    using Microsoft.AspNetCore.DataProtection;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using LibraryApi.Data;
-    using LibraryApi.Models;
-    using LibraryApi.Services;
-
-    [Route("api/security")]
-    [ApiController]
+    [ApiController, Route("api/v{version:apiVersion}/security")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     public class SecurityController : ControllerBase
     {
         private readonly IDataProtector protector;

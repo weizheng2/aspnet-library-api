@@ -6,11 +6,12 @@ using LibraryApi.Data;
 using LibraryApi.DTOs;
 using LibraryApi.Models;
 using LibraryApi.Utils;
+using Asp.Versioning;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController]
-    [Route("api/books")]
+    [ApiController, Route("api/v{version:apiVersion}/books")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     [Authorize(Policy = "isAdmin")]
     public class BooksController : ControllerBase
     {

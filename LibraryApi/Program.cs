@@ -8,6 +8,9 @@ using LibraryApi.OptionsConfiguration;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
 using LibraryApi.Extensions;
+using Asp.Versioning.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

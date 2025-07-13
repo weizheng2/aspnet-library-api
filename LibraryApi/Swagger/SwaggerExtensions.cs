@@ -1,4 +1,7 @@
+using Asp.Versioning.ApiExplorer;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace LibraryApi.Swagger
 {
@@ -6,24 +9,9 @@ namespace LibraryApi.Swagger
     {
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services)
         {
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Library API",
-                    Description = "Web API to work with authors and book data",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Wei",
-                        Url = new Uri("https://github.com/weizheng2")
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "MIT",
-                        Url = new Uri("https://opensource.org/license/mit/")
-                    }
-                });
-
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -41,13 +29,62 @@ namespace LibraryApi.Swagger
 
         public static IApplicationBuilder UseCustomSwagger(this IApplicationBuilder app)
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            using (var scope = app.ApplicationServices.CreateScope())
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Library API v1");
-            });
+                var provider = scope.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                app.UseSwagger();
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var description in provider.ApiVersionDescriptions)
+                    {
+                        var endpoint = $"/swagger/{description.GroupName}/swagger.json";
+                        var name = $"Library API {description.GroupName.ToUpperInvariant()}";
+
+                        Console.WriteLine($"Adding Swagger endpoint: {endpoint} with name: {name}");
+
+                        options.SwaggerEndpoint(endpoint, name);
+                    }
+                });
+            }
 
             return app;
+        }
+
+        public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+        {
+            private readonly IApiVersionDescriptionProvider _provider;
+
+            public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public void Configure(SwaggerGenOptions options)
+            {
+                foreach (var description in _provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerDoc(description.GroupName, new OpenApiInfo
+                    {
+                        Title = "Library API",
+                        Version = description.ApiVersion.ToString(),
+                        Description = description.IsDeprecated
+                                ? "Web API to work with authors and book data - THIS VERSION IS DEPRECATED"
+                                : "Web API to work with authors and book data",
+
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Wei",
+                            Url = new Uri("https://github.com/weizheng2")
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "MIT",
+                            Url = new Uri("https://opensource.org/license/mit/")
+                        }
+                    });
+                }
+            }
         }
     }
 }
