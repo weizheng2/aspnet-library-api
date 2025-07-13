@@ -1,15 +1,12 @@
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using LibraryApi.Data;
 using LibraryApi.Middlewares;
 using LibraryApi.Models;
 using LibraryApi.OptionsConfiguration;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
-using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,12 +50,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Users Database
-builder.Services.AddIdentityCore<User>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
+builder.Services.AddIdentityCore<User>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 builder.Services.AddScoped<UserManager<User>>();
 builder.Services.AddScoped<SignInManager<User>>();
+
 builder.Services.AddTransient<IUserServices, UserServices>();
 builder.Services.AddTransient<IHashService, HashService>();
 builder.Services.AddTransient<IArchiveStorage, ArchiveStorageAzure>();
@@ -81,18 +76,13 @@ builder.Services.AddCustomSwagger();
 var app = builder.Build();
 
 // Start Middlewares
-
-app.UseExceptionLogMiddleware();
-
 app.UseCustomSwagger();
-
-app.UseLogPetition();
-
 app.UseStaticFiles();
-
 app.UseOutputCache();
-
 app.UseCors();
+
+app.UseExceptionLogging();
+app.UseLogPetition();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -101,5 +91,4 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
-
 app.Run();

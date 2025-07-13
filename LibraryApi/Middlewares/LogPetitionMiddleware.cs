@@ -22,8 +22,8 @@ namespace LibraryApi.Middlewares
 
             _logger.LogInformation($"Petition: {context.Request.Method} {context.Request.Path}\nBody: {body}");
 
-            // Invoca el resto de los middlewares,
-            // con await se suspende este middleware hasta que se complete el siguiente/s
+            // Invoke the rest of middlewares
+            // With await we suspend this middleware until the next one is completed
             await _next(context);
 
             _logger.LogInformation($"Response: {context.Response.StatusCode}");
