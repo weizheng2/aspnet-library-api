@@ -7,47 +7,30 @@ using LibraryApi.Models;
 using LibraryApi.OptionsConfiguration;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
+using LibraryApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Start Services
+// Represents everything about the current HTTP Request
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDataProtection();
-
-builder.Services.AddOutputCache(options =>
-{
-    options.AddBasePolicy(policy =>
-    {
-        policy.Expire(TimeSpan.FromMinutes(5));
-    });
-});
-
-builder.Services.AddStackExchangeRedisOutputCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-});
-
-// Set allowed hosts with CORS
-var allowedHosts = builder.Configuration.GetSection("allowedHosts").Get<string[]>();
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(optionsCors =>
-    {
-        optionsCors.WithOrigins(allowedHosts!).AllowAnyHeader().AllowAnyMethod()
-        .WithExposedHeaders("total-records-quantity");
-    });
-});
- 
-// Test get strongly typed configuration data 
-builder.Services.AddOptions<PersonOptions>()
-    .Bind(builder.Configuration.GetSection(PersonOptions.SectionName))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
 builder.Services.AddControllers().AddNewtonsoftJson();
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAuthorizationBasedOnPolicy();
+
+builder.Services.AddAllowedHostsCors(builder.Configuration);
+builder.Services.AddCustomCaching(builder.Configuration);
+
+builder.Services.AddCustomApiVersioning();
+builder.Services.AddCustomSwagger();
+
+// TEST get strongly typed configuration data 
+builder.Services.AddOptions<PersonOptions>().Bind(builder.Configuration.GetSection(PersonOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
+
 // Database
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Users Database
 builder.Services.AddIdentityCore<User>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
@@ -58,20 +41,6 @@ builder.Services.AddTransient<IUserServices, UserServices>();
 builder.Services.AddTransient<IHashService, HashService>();
 builder.Services.AddTransient<IArchiveStorage, ArchiveStorageAzure>();
 //builder.Services.AddTransient<IArchiveStorage, ArchiveStorageLocal>();
-
-// Represents everything about the current HTTP Request
-builder.Services.AddHttpContextAccessor();
-
-// JWT
-builder.Services.AddJwtAuthentication(builder.Configuration);
-
-// Authorization based on policy
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("isAdmin", policy => policy.RequireClaim("isAdmin"));
-});
-
-builder.Services.AddCustomSwagger();
 
 var app = builder.Build();
 
