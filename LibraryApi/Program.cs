@@ -67,20 +67,7 @@ builder.Services.AddTransient<IArchiveStorage, ArchiveStorageAzure>();
 builder.Services.AddHttpContextAccessor();
 
 // JWT
-builder.Services.AddAuthentication().AddJwtBearer(options =>
-{
-    options.MapInboundClaims = false;
-
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwtSigningKey"]!)),
-        ClockSkew = TimeSpan.Zero
-    };
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Authorization based on policy
 builder.Services.AddAuthorization(options =>
@@ -88,48 +75,18 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("isAdmin", policy => policy.RequireClaim("isAdmin"));
 });
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Library API",
-        Description = "Web API to work with authors and book data",
-        Contact = new OpenApiContact
-        {
-            Name = "Wei",
-            Url = new Uri("https://github.com/weizheng2")
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT",
-            Url = new Uri("https://opensource.org/license/mit/")
-        }
-    });
-
-    // Create a window to add a JWT token to access endpoints with authorization requirements
-    // To add: Bearer "token"
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header
-    });
-
-    options.OperationFilter<AuthorizationFilter>();
-});
+builder.Services.AddCustomSwagger();
 
 var app = builder.Build();
 
 // Start Middlewares
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseCustomSwagger();
 
 app.UseLogPetition();
 
 app.UseStaticFiles();
+
 app.UseOutputCache();
 
 app.UseCors();
