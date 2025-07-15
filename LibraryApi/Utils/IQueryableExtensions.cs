@@ -8,8 +8,8 @@ namespace LibraryApi.Utils
             PaginationDto paginationDto)
         {
             return queryable
-                .Skip((paginationDto.Page - 1) * paginationDto.RecordPerPage)
-                .Take(paginationDto.RecordPerPage);
+                .Skip((paginationDto.Page - 1) * paginationDto.RecordsPerPage)
+                .Take(paginationDto.RecordsPerPage);
         }
     }
 }
