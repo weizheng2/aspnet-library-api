@@ -25,7 +25,7 @@ namespace LibraryApiTests.UnitTests.Controllers
                 await seedAction(context);
                 await context.SaveChangesAsync();
             }
-                
+
             var mockArchiveStorage = new Mock<IArchiveStorage>();
             var mockCacheStore = new Mock<IOutputCacheStore>();
 
@@ -35,6 +35,8 @@ namespace LibraryApiTests.UnitTests.Controllers
 
             return controller;
         }
+
+        #region GetAuthors
 
         [Fact]
         public async Task GetAuthors_WithValidData_ReturnsEmptyList()
@@ -105,21 +107,24 @@ namespace LibraryApiTests.UnitTests.Controllers
             Assert.Empty(returnedAuthors);
         }
 
+        #endregion
+
+        #region GetAuthorsWithFilter
 
         [Fact]
-        public async Task GetAuthorsWithFilter_WithValidFilters_ReturnsFilteredAuthors()
+        public async Task GetAuthorsWithFilter_WithNameAndBookFilter_ReturnsFilteredAuthors()
         {
             // Arrange
             var controller = await BuildController(async ctx =>
             {
                 ctx.Authors.AddRange(new List<Author>
                 {
-                    new Author { Id = 1, FirstName = "John", LastName = "Doe", 
+                    new Author { Id = 1, FirstName = "John", LastName = "Doe",
                     Books = new List<AuthorBook>
                     {
                         new AuthorBook { Book = new Book { Id = 1, Title = "Sample Book" } }
                     }},
-                    
+
                     new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
                     new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
                 });
@@ -141,8 +146,47 @@ namespace LibraryApiTests.UnitTests.Controllers
             var returnedAuthors = Assert.IsAssignableFrom<List<GetAuthorWithBooksDto>>(okResult.Value);
             Assert.Single(returnedAuthors);
             Assert.Equal("John Doe", returnedAuthors[0].FullName);
+            Assert.Equal("Sample Book", returnedAuthors[0].Books[0].Title);
         }
 
+        [Fact]
+        public async Task GetAuthorsWithFilter_WithNameFilter_ReturnsFilteredAuthors()
+        {
+            // Arrange
+            var controller = await BuildController(async ctx =>
+            {
+                ctx.Authors.AddRange(new List<Author>
+                {
+                    new Author { Id = 1, FirstName = "John", LastName = "Doe",
+                    Books = new List<AuthorBook>
+                    {
+                        new AuthorBook { Book = new Book { Id = 1, Title = "Sample Book" } }
+                    }},
+
+                    new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
+                    new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
+                });
+            });
+
+            var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 10 };
+            var authorFilterDto = new AuthorFilterDto
+            {
+                Names = "J",
+                LastNames = "D",
+                IncludeBooks = false
+            };
+
+            // Act
+            var response = await controller.GetAuthorsWithFilter(paginationDto, authorFilterDto);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(response.Result);
+            var returnedAuthors = Assert.IsAssignableFrom<List<GetAuthorDto>>(okResult.Value);
+            Assert.Single(returnedAuthors);
+            Assert.Equal("John Doe", returnedAuthors[0].FullName);
+        }
+        
+        #endregion
 
     }
 }
