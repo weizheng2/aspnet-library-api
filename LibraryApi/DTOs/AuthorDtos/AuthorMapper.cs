@@ -22,7 +22,7 @@ namespace LibraryApi.DTOs
             return new GetAuthorDto
             {
                 Id = author.Id,
-                FullName = $" {author.FirstName} {author.LastName}",
+                FullName = $"{author.FirstName} {author.LastName}",
                 PhotoUrl = author.PhotoUrl
             };
         }
@@ -32,7 +32,7 @@ namespace LibraryApi.DTOs
             return new GetAuthorWithBooksDto
             {
                 Id = author.Id,
-                FullName = $" {author.FirstName} {author.LastName}",
+                FullName = $"{author.FirstName} {author.LastName}",
                 Books = author.Books.Select(b => b.Book!.ToGetBookDto()).ToList(),
                 PhotoUrl = author.PhotoUrl
             };
