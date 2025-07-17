@@ -14,26 +14,22 @@ namespace LibraryApiTests.UnitTests.Controllers
 {
     public class AuthorsV1ControllerTests : TestBase
     {
-        private async Task<AuthorsV1Controller> BuildController(Func<ApplicationDbContext, Task> seedAction = null)
+        Mock<IArchiveStorage> mockArchiveStorage = null!;
+        Mock<IOutputCacheStore> mockCacheStore = null!;
+        private string dbName = Guid.NewGuid().ToString();
+        private AuthorsV1Controller controller = null!;
+
+        public AuthorsV1ControllerTests()
         {
-            var dbName = Guid.NewGuid().ToString();
+            mockArchiveStorage = new Mock<IArchiveStorage>();
+            mockCacheStore = new Mock<IOutputCacheStore>();
+        }
 
+        private void InitializeController()
+        {
             var context = BuildContext(dbName);
-
-            if (seedAction != null)
-            {
-                await seedAction(context);
-                await context.SaveChangesAsync();
-            }
-
-            var mockArchiveStorage = new Mock<IArchiveStorage>();
-            var mockCacheStore = new Mock<IOutputCacheStore>();
-
-            var context2 = BuildContext(dbName);
-            var controller = new AuthorsV1Controller(context2, mockArchiveStorage.Object, mockCacheStore.Object);
+            controller = new AuthorsV1Controller(context, mockArchiveStorage.Object, mockCacheStore.Object);
             controller.ControllerContext = new ControllerContext() { HttpContext = new DefaultHttpContext() };
-
-            return controller;
         }
 
         #region GetAuthors
@@ -42,8 +38,7 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task GetAuthors_WithValidData_ReturnsEmptyList()
         {
             // Arrange
-            var controller = await BuildController();
-
+            InitializeController();
             var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 10 };
 
             // Act
@@ -59,15 +54,14 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task GetAuthors_PaginationRecords_ReturnsCorrectAmount()
         {
             // Arrange
-            var controller = await BuildController(async ctx =>
-            {
-                ctx.Authors.AddRange(new List<Author>
-                {
-                    new Author { Id = 1, FirstName = "John", LastName = "Doe" },
-                    new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
-                    new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
-                });
-            });
+            var context = BuildContext(dbName);
+            context.Authors.AddRange(
+                new Author { Id = 1, FirstName = "John", LastName = "Doe" },
+                new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
+                new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
+            );
+            context.SaveChanges();
+            InitializeController();
 
             var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 2 };
 
@@ -87,14 +81,13 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task GetAuthors_WithNegativePagination_ReturnsResultOkAndEmptyList()
         {
             // Arrange
-            var controller = await BuildController(async ctx =>
-            {
-                ctx.Authors.AddRange(new List<Author>
-                {
-                    new Author { Id = 1, FirstName = "John", LastName = "Doe" },
-                    new Author { Id = 2, FirstName = "Jane", LastName = "Smith" }
-                });
-            });
+            var context = BuildContext(dbName);
+            context.Authors.AddRange(
+                new Author { Id = 1, FirstName = "John", LastName = "Doe" },
+                new Author { Id = 2, FirstName = "Jane", LastName = "Smith" }
+            );
+            context.SaveChanges();
+            InitializeController();
 
             var paginationDto = new PaginationDto { Page = -1, RecordsPerPage = -10 };
 
@@ -115,9 +108,9 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task GetAuthorsWithFilter_WithNameAndBookFilter_ReturnsFilteredAuthors()
         {
             // Arrange
-            var controller = await BuildController(async ctx =>
-            {
-                ctx.Authors.AddRange(new List<Author>
+            var context = BuildContext(dbName);
+            context.Authors.AddRange(
+                new List<Author>
                 {
                     new Author { Id = 1, FirstName = "John", LastName = "Doe",
                     Books = new List<AuthorBook>
@@ -127,8 +120,10 @@ namespace LibraryApiTests.UnitTests.Controllers
 
                     new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
                     new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
-                });
-            });
+                }
+            );
+            context.SaveChanges();
+            InitializeController();
 
             var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 10 };
             var authorFilterDto = new AuthorFilterDto
@@ -153,9 +148,9 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task GetAuthorsWithFilter_WithNameFilter_ReturnsFilteredAuthors()
         {
             // Arrange
-            var controller = await BuildController(async ctx =>
-            {
-                ctx.Authors.AddRange(new List<Author>
+            var context = BuildContext(dbName);
+            context.Authors.AddRange(
+                new List<Author>
                 {
                     new Author { Id = 1, FirstName = "John", LastName = "Doe",
                     Books = new List<AuthorBook>
@@ -165,8 +160,10 @@ namespace LibraryApiTests.UnitTests.Controllers
 
                     new Author { Id = 2, FirstName = "Jane", LastName = "Smith" },
                     new Author { Id = 3, FirstName = "Zen", LastName = "Les" }
-                });
-            });
+                }
+            );
+            context.SaveChanges();
+            InitializeController();
 
             var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 10 };
             var authorFilterDto = new AuthorFilterDto
