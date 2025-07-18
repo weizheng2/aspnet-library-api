@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.OutputCaching;
 using LibraryApiTests.Utils;
 using Microsoft.AspNetCore.Http;
 using LibraryApi.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace LibraryApiTests.UnitTests.Controllers
 {
@@ -182,8 +184,178 @@ namespace LibraryApiTests.UnitTests.Controllers
             Assert.Single(returnedAuthors);
             Assert.Equal("John Doe", returnedAuthors[0].FullName);
         }
-        
+
         #endregion
 
+
+        [Fact]
+        public async Task CreateAuthor_WithValidData_ReturnsCreatedAtData()
+        {
+            // Arrange
+            InitializeController();
+
+            var createAuthorDto = new CreateAuthorDto
+            {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+
+            // Act
+            var response = await controller.CreateAuthor(createAuthorDto);
+
+            // Assert
+            var createdResult = Assert.IsType<CreatedAtActionResult>(response);
+
+            Assert.Equal(nameof(controller.GetAuthorById), createdResult.ActionName);
+
+            var returnedAuthor = Assert.IsType<GetAuthorDto>(createdResult.Value);
+            Assert.Equal("John Doe", returnedAuthor.FullName);
+
+            var verificationContext = BuildContext(dbName);
+            var quantity = await verificationContext.Authors.CountAsync();
+            Assert.Equal(1, quantity);
+
+            mockCacheStore.Verify(
+                x => x.EvictByTagAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task UpdateAuthor_WithValidData_ReturnsNoContent()
+        {
+            // Arrange
+            InitializeController();
+
+            var context = BuildContext(dbName);
+
+            // Original author
+            var existingAuthor = new Author
+            {
+                FirstName = "Jane",
+                LastName = "Smith",
+                Identification = "123",
+                PhotoUrl = "old-photo.jpg"
+            };
+            context.Authors.Add(existingAuthor);
+            await context.SaveChangesAsync();
+
+            // New data
+            var newPhotoMock = new Mock<IFormFile>();
+            mockArchiveStorage
+                .Setup(x => x.Edit("old-photo.jpg", It.IsAny<string>(), newPhotoMock.Object))
+                .ReturnsAsync("new-photo.jpg");
+
+            var updateAuthorDto = new UpdateAuthorWithPhotoDto
+            {
+                FirstName = "JaneUpdated",
+                LastName = "SmithUpdated",
+                Identification = "123Updated",
+                Photo = newPhotoMock.Object
+            };
+
+            // Act
+            var response = await controller.UpdateAuthor(existingAuthor.Id, updateAuthorDto);
+
+            // Assert
+            Assert.IsType<NoContentResult>(response);
+
+            var verificationContext = BuildContext(dbName);
+            var updatedAuthor = await verificationContext.Authors.FirstOrDefaultAsync(a => a.Id == existingAuthor.Id);
+
+            Assert.NotNull(updatedAuthor);
+            Assert.Equal("JaneUpdated", updatedAuthor.FirstName);
+            Assert.Equal("SmithUpdated", updatedAuthor.LastName);
+            Assert.Equal("123Updated", updatedAuthor.Identification);
+            Assert.Equal("new-photo.jpg", updatedAuthor.PhotoUrl);
+
+            mockArchiveStorage.Verify(x =>
+                x.Edit("old-photo.jpg", It.IsAny<string>(), newPhotoMock.Object),
+                Times.Once);
+        }
+
+
+        [Fact]
+        public async Task PatchAuthor_WithInvalidData_ReturnsValidationProblem()
+        {
+            // Arrange
+            InitializeController();
+
+            var context = BuildContext(dbName);
+
+            // Original author
+            var existingAuthor = new Author
+            {
+                FirstName = "Jane",
+                LastName = "Smith",
+                Identification = "123",
+            };
+            context.Authors.Add(existingAuthor);
+            await context.SaveChangesAsync();
+
+            // Patch data
+            var updateAuthorDto = new PatchAuthorDto
+            {
+                FirstName = "JaneUpdated",
+                LastName = "SmithUpdated",
+                Identification = "123Updated",
+            };
+
+            var patchDocument = new JsonPatchDocument<PatchAuthorDto>()
+            {
+
+            };
+          
+
+            // Act
+            var response = await controller.UpdateAuthor(existingAuthor.Id, updateAuthorDto);
+
+            // Assert
+            Assert.IsType<NoContentResult>(response);
+
+            var verificationContext = BuildContext(dbName);
+            var updatedAuthor = await verificationContext.Authors.FirstOrDefaultAsync(a => a.Id == existingAuthor.Id);
+
+            Assert.NotNull(updatedAuthor);
+            Assert.Equal("JaneUpdated", updatedAuthor.FirstName);
+            Assert.Equal("SmithUpdated", updatedAuthor.LastName);
+            Assert.Equal("123Updated", updatedAuthor.Identification);
+            Assert.Equal("new-photo.jpg", updatedAuthor.PhotoUrl);
+
+            mockArchiveStorage.Verify(x =>
+                x.Edit("old-photo.jpg", It.IsAny<string>(), newPhotoMock.Object),
+                Times.Once);
+        }
+
+
+         [HttpPatch("{id}")]
+        public async Task<ActionResult> PatchAuthor(int id, JsonPatchDocument<PatchAuthorDto> patchDocument)
+        {
+            if (patchDocument == null)
+            {
+                return BadRequest();
+            }
+
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            var patchAuthorDto = author.ToPatchAuthorDto();
+
+            patchDocument.ApplyTo(patchAuthorDto, ModelState);
+
+            if (!TryValidateModel(patchAuthorDto))
+            {
+                return ValidationProblem();
+            }
+
+            author.UpdateAuthorFromPatch(patchAuthorDto);
+            await _context.SaveChangesAsync();
+            await _outputCacheStore.EvictByTagAsync(cache, default);
+
+            return NoContent();
+        }
     }
 }
