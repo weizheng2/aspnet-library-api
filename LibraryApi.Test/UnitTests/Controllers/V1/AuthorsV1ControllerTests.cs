@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using LibraryApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using LibraryApi.Validations;
 
 namespace LibraryApiTests.UnitTests.Controllers
 {
@@ -18,6 +20,7 @@ namespace LibraryApiTests.UnitTests.Controllers
     {
         Mock<IArchiveStorage> mockArchiveStorage = null!;
         Mock<IOutputCacheStore> mockCacheStore = null!;
+        Mock<IObjectModelValidator> mockObjectValidator = null!;
         private string dbName = Guid.NewGuid().ToString();
         private AuthorsV1Controller controller = null!;
 
@@ -25,6 +28,7 @@ namespace LibraryApiTests.UnitTests.Controllers
         {
             mockArchiveStorage = new Mock<IArchiveStorage>();
             mockCacheStore = new Mock<IOutputCacheStore>();
+            mockObjectValidator = new Mock<IObjectModelValidator>();
         }
 
         private void InitializeController()
@@ -192,13 +196,13 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task CreateAuthor_WithValidData_ReturnsCreatedAtData()
         {
             // Arrange
-            InitializeController();
-
             var createAuthorDto = new CreateAuthorDto
             {
                 FirstName = "John",
                 LastName = "Doe"
             };
+
+            InitializeController();
 
             // Act
             var response = await controller.CreateAuthor(createAuthorDto);
@@ -225,8 +229,6 @@ namespace LibraryApiTests.UnitTests.Controllers
         public async Task UpdateAuthor_WithValidData_ReturnsNoContent()
         {
             // Arrange
-            InitializeController();
-
             var context = BuildContext(dbName);
 
             // Original author
@@ -239,6 +241,7 @@ namespace LibraryApiTests.UnitTests.Controllers
             };
             context.Authors.Add(existingAuthor);
             await context.SaveChangesAsync();
+            InitializeController();
 
             // New data
             var newPhotoMock = new Mock<IFormFile>();
@@ -274,41 +277,31 @@ namespace LibraryApiTests.UnitTests.Controllers
                 Times.Once);
         }
 
-
         [Fact]
-        public async Task PatchAuthor_WithInvalidData_ReturnsValidationProblem()
+        public async Task PatchAuthor_WithValidPatch_UpdatesAndReturnsNoContent()
         {
             // Arrange
-            InitializeController();
-
             var context = BuildContext(dbName);
-
-            // Original author
             var existingAuthor = new Author
             {
                 FirstName = "Jane",
                 LastName = "Smith",
-                Identification = "123",
+                Identification = "123"
             };
             context.Authors.Add(existingAuthor);
             await context.SaveChangesAsync();
 
-            // Patch data
-            var updateAuthorDto = new PatchAuthorDto
-            {
-                FirstName = "JaneUpdated",
-                LastName = "SmithUpdated",
-                Identification = "123Updated",
-            };
+            InitializeController();
+            controller.ObjectValidator = mockObjectValidator.Object;
 
-            var patchDocument = new JsonPatchDocument<PatchAuthorDto>()
-            {
-
-            };
-          
+            // Patch Data
+            var patchDocument = new JsonPatchDocument<PatchAuthorDto>();
+            patchDocument.Replace(x => x.FirstName, "JaneUpdated");
+            patchDocument.Replace(x => x.LastName, "SmithUpdated");
+            patchDocument.Replace(x => x.Identification, "123Updated");
 
             // Act
-            var response = await controller.UpdateAuthor(existingAuthor.Id, updateAuthorDto);
+            var response = await controller.PatchAuthor(existingAuthor.Id, patchDocument);
 
             // Assert
             Assert.IsType<NoContentResult>(response);
@@ -320,42 +313,35 @@ namespace LibraryApiTests.UnitTests.Controllers
             Assert.Equal("JaneUpdated", updatedAuthor.FirstName);
             Assert.Equal("SmithUpdated", updatedAuthor.LastName);
             Assert.Equal("123Updated", updatedAuthor.Identification);
-            Assert.Equal("new-photo.jpg", updatedAuthor.PhotoUrl);
-
-            mockArchiveStorage.Verify(x =>
-                x.Edit("old-photo.jpg", It.IsAny<string>(), newPhotoMock.Object),
-                Times.Once);
         }
 
-
-         [HttpPatch("{id}")]
-        public async Task<ActionResult> PatchAuthor(int id, JsonPatchDocument<PatchAuthorDto> patchDocument)
+        [Fact]
+        public async Task PatchAuthor_WithNonExistentId_ReturnsNotFound()
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
+            // Arrange
+            InitializeController();
+            
+            var patchDocument = new JsonPatchDocument<PatchAuthorDto>();
+            patchDocument.Replace(x => x.FirstName, "John");
 
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null)
-            {
-                return NotFound();
-            }
+            // Act
+            var response = await controller.PatchAuthor(999, patchDocument);
 
-            var patchAuthorDto = author.ToPatchAuthorDto();
+            // Assert
+            Assert.IsType<NotFoundResult>(response);
+        }
 
-            patchDocument.ApplyTo(patchAuthorDto, ModelState);
+        [Fact]
+        public async Task PatchAuthor_WithNullPatchDocument_ReturnsBadRequest()
+        {
+            // Arrange
+            InitializeController();
 
-            if (!TryValidateModel(patchAuthorDto))
-            {
-                return ValidationProblem();
-            }
+            // Act
+            var response = await controller.PatchAuthor(1, null);
 
-            author.UpdateAuthorFromPatch(patchAuthorDto);
-            await _context.SaveChangesAsync();
-            await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            return NoContent();
+            // Assert
+            Assert.IsType<BadRequestResult>(response);
         }
     }
 }
