@@ -8,11 +8,9 @@ using LibraryApi.Services;
 using Microsoft.AspNetCore.OutputCaching;
 using LibraryApiTests.Utils;
 using Microsoft.AspNetCore.Http;
-using LibraryApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using LibraryApi.Validations;
 
 namespace LibraryApiTests.UnitTests.Controllers
 {
@@ -37,8 +35,6 @@ namespace LibraryApiTests.UnitTests.Controllers
             controller = new AuthorsV1Controller(context, mockArchiveStorage.Object, mockCacheStore.Object);
             controller.ControllerContext = new ControllerContext() { HttpContext = new DefaultHttpContext() };
         }
-
-        #region GetAuthors
 
         [Fact]
         public async Task GetAuthors_WithValidData_ReturnsEmptyList()
@@ -106,9 +102,6 @@ namespace LibraryApiTests.UnitTests.Controllers
             Assert.Empty(returnedAuthors);
         }
 
-        #endregion
-
-        #region GetAuthorsWithFilter
 
         [Fact]
         public async Task GetAuthorsWithFilter_WithNameAndBookFilter_ReturnsFilteredAuthors()
@@ -189,8 +182,6 @@ namespace LibraryApiTests.UnitTests.Controllers
             Assert.Equal("John Doe", returnedAuthors[0].FullName);
         }
 
-        #endregion
-
 
         [Fact]
         public async Task CreateAuthor_WithValidData_ReturnsCreatedAtData()
@@ -224,6 +215,7 @@ namespace LibraryApiTests.UnitTests.Controllers
                 Times.Once
             );
         }
+
 
         [Fact]
         public async Task UpdateAuthor_WithValidData_ReturnsNoContent()
@@ -277,6 +269,7 @@ namespace LibraryApiTests.UnitTests.Controllers
                 Times.Once);
         }
 
+
         [Fact]
         public async Task PatchAuthor_WithValidPatch_UpdatesAndReturnsNoContent()
         {
@@ -320,7 +313,7 @@ namespace LibraryApiTests.UnitTests.Controllers
         {
             // Arrange
             InitializeController();
-            
+
             var patchDocument = new JsonPatchDocument<PatchAuthorDto>();
             patchDocument.Replace(x => x.FirstName, "John");
 
@@ -343,5 +336,50 @@ namespace LibraryApiTests.UnitTests.Controllers
             // Assert
             Assert.IsType<BadRequestResult>(response);
         }
+
+
+        [Fact]
+        public async Task DeleteAuthor_AuthorExists_DeletesAuthorAndReturnNoContent()
+        {
+            // Arrange
+            var context = BuildContext(dbName);
+            var existingAuthor = new Author
+            {
+                FirstName = "Jane",
+                LastName = "Smith",
+                Identification = "123"
+            };
+            context.Authors.Add(existingAuthor);
+            await context.SaveChangesAsync();
+
+            InitializeController();
+
+            // Act
+            var response = await controller.DeleteAuthor(existingAuthor.Id);
+
+            // Assert
+            var context2 = BuildContext(dbName);
+            var deletedAuthor = await context2.Authors.FirstOrDefaultAsync(a => a.Id == existingAuthor.Id);
+
+            Assert.Null(deletedAuthor);
+            Assert.IsType<NoContentResult>(response);
+        }
+        
+        [Fact]
+        public async Task DeleteAuthor_AuthorDoesNotExists_ReturnNotFound()
+        {
+            // Arrange
+            InitializeController();
+
+            int authorId = 99999; // Non-existent author ID
+
+            // Act
+            var response = await controller.DeleteAuthor(authorId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(response);
+        }
+
     }
+    
 }
