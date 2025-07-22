@@ -12,7 +12,7 @@ namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/books")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
-    [Authorize(Policy = "isAdmin")]
+    [Authorize]
     public class BooksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -75,6 +75,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetBookWithAuthorsAndCommentsDto>> GetBookById(int id)
         {
             var book = await _context.Books

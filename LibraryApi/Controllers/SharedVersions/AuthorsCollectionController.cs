@@ -9,7 +9,7 @@ namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     [ApiVersion("1.0")]
-    [Authorize(Policy = "isAdmin")]
+    [Authorize]
     public class AuthorsCollectionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

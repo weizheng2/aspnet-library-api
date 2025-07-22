@@ -5,6 +5,7 @@ using Asp.Versioning;
 
 namespace LibraryApi.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController, Route("api/v{version:apiVersion}/configurations")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
     public class ConfigurationsController : ControllerBase

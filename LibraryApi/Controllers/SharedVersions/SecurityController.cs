@@ -7,6 +7,7 @@ namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/security")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
+    [Tags("Test API - Hashing, Encryption, and Decryption")]
     public class SecurityController : ControllerBase
     {
         private readonly IDataProtector protector;

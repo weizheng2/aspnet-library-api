@@ -24,6 +24,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<GetCommentDto>>> GetComments(int bookId)
         {
             var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
@@ -44,6 +45,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetCommentDto>> GetCommentById(Guid id)
         {
             var comment = await _context.Comments

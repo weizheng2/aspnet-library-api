@@ -30,7 +30,7 @@ builder.Services.AddCustomApiVersioning();
 builder.Services.AddCustomSwagger();
 
 // TEST get strongly typed configuration data 
-builder.Services.AddOptions<PersonOptions>().Bind(builder.Configuration.GetSection(PersonOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
+//builder.Services.AddOptions<PersonOptions>().Bind(builder.Configuration.GetSection(PersonOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -46,6 +46,15 @@ builder.Services.AddTransient<IArchiveStorage, ArchiveStorageAzure>();
 //builder.Services.AddTransient<IArchiveStorage, ArchiveStorageLocal>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (dbContext.Database.IsRelational())
+    {
+        dbContext.Database.Migrate();
+    }
+}
 
 // Start Middlewares
 app.UseCustomSwagger();
