@@ -24,7 +24,7 @@ namespace LibraryApi.DTOs
             };
         }
 
-        public static Book ToBook(this CreateBookDto createBookDto)
+        public static Book ToBook(this CreateBookWithAuthorsDto createBookDto)
         {
             return new Book
             {
@@ -32,6 +32,14 @@ namespace LibraryApi.DTOs
                 Authors = createBookDto.AuthorsId
                     .Select(id => new AuthorBook { AuthorId = id })
                     .ToList()
+            };
+        }
+
+        public static Book ToBook(this CreateBookDto createBookDto)
+        {
+            return new Book
+            {
+                Title = createBookDto.Title
             };
         }
    }

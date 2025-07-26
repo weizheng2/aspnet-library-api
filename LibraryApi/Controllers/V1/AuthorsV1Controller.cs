@@ -36,7 +36,7 @@ namespace LibraryApi.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        [OutputCache(Tags = [cache])]
+        //[OutputCache(Tags = [cache])]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
         {
             var queryable = _context.Authors.AsQueryable();
@@ -107,7 +107,7 @@ namespace LibraryApi.Controllers
 
 
         [HttpGet("{id}")]
-        [OutputCache(Tags = [cache])]
+        //[OutputCache(Tags = [cache])]
         [AllowAnonymous]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id)
         {
@@ -131,7 +131,7 @@ namespace LibraryApi.Controllers
             await _context.SaveChangesAsync();
 
             // Remove cache since we added new data
-            await _outputCacheStore.EvictByTagAsync(cache, default);
+            //await _outputCacheStore.EvictByTagAsync(cache, default);
 
             var authorDto = author.ToGetAuthorDto();
             return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
@@ -150,7 +150,7 @@ namespace LibraryApi.Controllers
 
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
-            await _outputCacheStore.EvictByTagAsync(cache, default);
+            //await _outputCacheStore.EvictByTagAsync(cache, default);
 
             var authorDto = author.ToGetAuthorDto();
             return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
@@ -174,7 +174,7 @@ namespace LibraryApi.Controllers
             author.Identification = updateAuthorDto.Identification;
 
             await _context.SaveChangesAsync();
-            await _outputCacheStore.EvictByTagAsync(cache, default);
+            //await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
@@ -204,7 +204,7 @@ namespace LibraryApi.Controllers
 
             author.UpdateAuthorFromPatch(patchAuthorDto);
             await _context.SaveChangesAsync();
-            await _outputCacheStore.EvictByTagAsync(cache, default);
+            //await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
@@ -222,7 +222,7 @@ namespace LibraryApi.Controllers
             await _context.SaveChangesAsync();
 
             await _archiveStorage.Remove(author.PhotoUrl, container);
-            await _outputCacheStore.EvictByTagAsync(cache, default);
+            //await _outputCacheStore.EvictByTagAsync(cache, default);
 
             return NoContent();
         }
