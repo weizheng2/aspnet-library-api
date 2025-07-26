@@ -93,7 +93,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBook(CreateBookDto createBookDto)
+        public async Task<ActionResult> CreateBook(CreateBookWithAuthorsDto createBookDto)
         {
             if (createBookDto.AuthorsId == null || createBookDto.AuthorsId.Count <= 0)
             {
