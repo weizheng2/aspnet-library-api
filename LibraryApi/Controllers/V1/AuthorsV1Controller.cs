@@ -19,7 +19,6 @@ namespace LibraryApi.Controllers
     [Authorize]
     [Tags("Authors")]
     [ControllerName("AuthorsV1")]
-
     public class AuthorsV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -108,10 +107,6 @@ namespace LibraryApi.Controllers
 
 
         [HttpGet("{id}")]
-        [EndpointSummary("Get authour by Id")]
-        [EndpointDescription("Get author by Id with books included. If the author doesnt exist, return 404.")]
-        [ProducesResponseType<GetAuthorWithBooksDto>(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [OutputCache(Tags = [cache])]
         [AllowAnonymous]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id)

@@ -11,14 +11,15 @@ using Asp.Versioning;
 namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/books")]
-    [ApiVersion("1.0"), ApiVersion("2.0")]
-    [Authorize]
-    public class BooksController : ControllerBase
+    [ApiVersion("2.0")]
+    [Tags("Books")]
+    [ControllerName("BooksV2")]
+    public class BooksV2Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly ITimeLimitedDataProtector limitedTimeprotector;
 
-        public BooksController(ApplicationDbContext context, IDataProtectionProvider protectionProvider)
+        public BooksV2Controller(ApplicationDbContext context, IDataProtectionProvider protectionProvider)
         {
             _context = context;
 
@@ -26,7 +27,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<List<GetBookDto>>> GetBooks([FromQuery] PaginationDto paginationDto)
         {
             var queryable = _context.Books.AsQueryable();
@@ -43,7 +43,7 @@ namespace LibraryApi.Controllers
         {
             string plainText = Guid.NewGuid().ToString();
             string token = limitedTimeprotector.Protect(plainText, lifetime: TimeSpan.FromSeconds(30));
-    
+
             var url = Url.Action(
                 action: nameof(GetBooksLimitedTime),
                 controller: null, // same controller
@@ -55,7 +55,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("limited-time-books/{token}")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<GetBookDto>>> GetBooksLimitedTime(string token)
         {
             try
@@ -75,7 +74,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<GetBookWithAuthorsAndCommentsDto>> GetBookById(int id)
         {
             var book = await _context.Books

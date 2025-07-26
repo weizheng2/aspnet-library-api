@@ -41,7 +41,7 @@ namespace LibraryApi.Swagger
                         var endpoint = $"/swagger/{description.GroupName}/swagger.json";
                         var name = $"Library API {description.GroupName.ToUpperInvariant()}";
 
-                        Console.WriteLine($"Adding Swagger endpoint: {endpoint} with name: {name}");
+                        //Console.WriteLine($"Adding Swagger endpoint: {endpoint} with name: {name}");
 
                         options.SwaggerEndpoint(endpoint, name);
                     }
@@ -64,14 +64,30 @@ namespace LibraryApi.Swagger
             {
                 foreach (var description in _provider.ApiVersionDescriptions)
                 {
-                    options.SwaggerDoc(description.GroupName, new OpenApiInfo
+                    var apiVersion = description.ApiVersion.ToString();
+                    var groupName = description.GroupName;
+
+                    string customDescription = "Web API to work with authors and book data";
+
+                    if (description.IsDeprecated)
+                    {
+                        customDescription = $"Version {apiVersion} is deprecated. Please migrate to a newer version.";
+                    }
+                    else
+                    {
+                        customDescription = groupName switch
+                        {
+                            "v1" => "Web API to work with authors and book data.<br/>This version has authorization enabled. Try V2 for a public version.",
+                            "v2" => "Web API to work with authors and book data.<br/>This version does not have authorization enabled. Try V1 for a version with authorization.",
+                            _ => "Web API to work with authors and book data"
+                        };
+                     }
+                 
+                    options.SwaggerDoc(groupName, new OpenApiInfo
                     {
                         Title = "Library API",
-                        Version = description.ApiVersion.ToString(),
-                        Description = description.IsDeprecated
-                                ? "Web API to work with authors and book data - THIS VERSION IS DEPRECATED"
-                                : "Web API to work with authors and book data",
-
+                        Version = apiVersion,
+                        Description = customDescription,
                         Contact = new OpenApiContact
                         {
                             Name = "Wei",

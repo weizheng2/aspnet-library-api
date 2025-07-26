@@ -10,21 +10,21 @@ using Asp.Versioning;
 namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/books/{bookId:int}/comments")]
-    [ApiVersion("1.0"), ApiVersion("2.0")]
-    [Authorize]
-    public class CommentsController : ControllerBase
+    [ApiVersion("2.0")]
+    [Tags("Comments")]
+    [ControllerName("CommentsV2")]
+    public class CommentsV2Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IUserServices _userServices;
 
-        public CommentsController(ApplicationDbContext context, IUserServices userServices)
+        public CommentsV2Controller(ApplicationDbContext context, IUserServices userServices)
         {
             _context = context;
             _userServices = userServices;
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<List<GetCommentDto>>> GetComments(int bookId)
         {
             var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
@@ -45,7 +45,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<GetCommentDto>> GetCommentById(Guid id)
         {
             var comment = await _context.Comments
@@ -74,8 +73,6 @@ namespace LibraryApi.Controllers
 
             return CreatedAtAction(nameof(GetCommentById), new { bookId, id = comment.Id }, comment.ToGetCommentDto());
         }
-
-        // Not using [HttpPut] here because some properties of the comment should not be updated such as PublishedAt.
 
         [HttpPatch("{id}")]
         public async Task<ActionResult> PatchComment(int bookId, Guid id, JsonPatchDocument<PatchCommentDto> patchDocument)
@@ -125,15 +122,15 @@ namespace LibraryApi.Controllers
             }
 
             var user = await _userServices.GetUser();
-                if (user is null)
-                    return NotFound();
+            if (user is null)
+                return NotFound();
 
             // Cant delete other users comment
             if (user.Id != comment.UserId)
                 return Forbid();
 
             comment.HasBeenDeleted = true;
-        
+
             _context.Comments.Update(comment);
             await _context.SaveChangesAsync();
 

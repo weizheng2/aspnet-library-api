@@ -10,10 +10,12 @@ namespace LibraryApi.Controllers
     [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     [ApiVersion("1.0")]
     [Authorize]
-    public class AuthorsCollectionController : ControllerBase
+    [Tags("AuthorsCollection")]
+    [ControllerName("AuthorsCollectionV1")]
+    public class AuthorsCollectionV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public AuthorsCollectionController(ApplicationDbContext context)
+        public AuthorsCollectionV1Controller(ApplicationDbContext context)
         {
             _context = context;
         }

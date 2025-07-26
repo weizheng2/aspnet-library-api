@@ -63,7 +63,7 @@ app.UseOutputCache();
 app.UseCors();
 
 app.UseExceptionLogging();
-app.UseLogPetition();
+//app.UseLogPetition();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -16,10 +16,8 @@ namespace LibraryApi.Controllers
 {
     [ApiController, Route("api/v{version:apiVersion}/authors")]
     [ApiVersion("2.0")]
-    [Authorize]
     [Tags("Authors")]
     [ControllerName("AuthorsV2")]
-
     public class AuthorsV2Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -36,7 +34,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         [OutputCache(Tags = [cache])]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
         {
@@ -50,7 +47,6 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("with-filter")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthorsWithFilter([FromQuery] PaginationDto paginationDto, [FromQuery] AuthorFilterDto authorFilterDto)
         {
             var queryable = _context.Authors.AsQueryable();
@@ -107,12 +103,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [EndpointSummary("Get authour by Id")]
-        [EndpointDescription("Get author by Id with books included. If the author doesnt exist, return 404.")]
-        [ProducesResponseType<GetAuthorWithBooksDto>(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [OutputCache(Tags = [cache])]
-        [AllowAnonymous]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id, bool includeBooks = true)
         {
             var queryable = _context.Authors.AsQueryable();
