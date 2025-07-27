@@ -6,14 +6,15 @@ using LibraryApi.Data;
 using LibraryApi.DTOs;
 using LibraryApi.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController, Route("api/v{version:apiVersion}/books/{bookId:int}/comments")]
     [ApiVersion("1.0")]
     [Authorize]
-    [Tags("Comments")]
-    [ControllerName("CommentsV1")]
+    [EnableRateLimiting("general")]
+    [ControllerName("CommentsV1"), Tags("Comments")]
+    [ApiController, Route("api/v{version:apiVersion}/books/{bookId:int}/comments")]
     public class CommentsV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;

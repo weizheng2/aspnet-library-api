@@ -11,11 +11,12 @@ using LibraryApi.DTOs;
 using LibraryApi.Models;
 using LibraryApi.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController, Route("api/v{version:apiVersion}/users")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
+    [ApiController, Route("api/v{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -23,7 +24,6 @@ namespace LibraryApi.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly IUserServices _userServices;
         private readonly ApplicationDbContext _context;
-
 
         public UsersController(IConfiguration configuration, UserManager<User> userManager,
             SignInManager<User> signInManager, IUserServices userServices, ApplicationDbContext context)
@@ -45,6 +45,7 @@ namespace LibraryApi.Controllers
             return Ok(usersDto);
         }
 
+        [EnableRateLimiting("general")]
         [HttpPost("register")]
         public async Task<ActionResult<AuthenticationResponseDto>> Register(UserCredentialsDto credentialsDto)
         {
@@ -70,6 +71,7 @@ namespace LibraryApi.Controllers
             }
         }
 
+        [EnableRateLimiting("strict")]
         [HttpPost("login")]
         public async Task<ActionResult<AuthenticationResponseDto>> Login(UserCredentialsDto credentialsDto)
         {
@@ -88,6 +90,7 @@ namespace LibraryApi.Controllers
             return ReturnIncorrectLogin();
         }
 
+        [EnableRateLimiting("general")]
         [HttpGet("update-token")]
         [Authorize]
         public async Task<ActionResult<AuthenticationResponseDto>> UpdateToken()
@@ -158,6 +161,7 @@ namespace LibraryApi.Controllers
         }
 
 
+        [EnableRateLimiting("general")]
         [HttpPut]
         [Authorize]
         public async Task<ActionResult> UpdateUser(UpdateUserDto updateUserDto)

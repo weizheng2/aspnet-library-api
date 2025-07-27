@@ -7,14 +7,15 @@ using LibraryApi.DTOs;
 using LibraryApi.Models;
 using LibraryApi.Utils;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController, Route("api/v{version:apiVersion}/books")]
     [ApiVersion("1.0")]
     [Authorize]
-    [Tags("Books")]
-    [ControllerName("BooksV1")]
+    [EnableRateLimiting("general")]
+    [ControllerName("BooksV1"), Tags("Books")]
+    [ApiController, Route("api/v{version:apiVersion}/books")]
     public class BooksV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;

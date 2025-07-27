@@ -11,14 +11,15 @@ using LibraryApi.Models;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.OutputCaching;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController, Route("api/v{version:apiVersion}/authors")]
     [ApiVersion("1.0")]
     [Authorize]
-    [Tags("Authors")]
-    [ControllerName("AuthorsV1")]
+    [EnableRateLimiting("general")]
+    [ControllerName("AuthorsV1"), Tags("Authors")]
+    [ApiController, Route("api/v{version:apiVersion}/authors")]
     public class AuthorsV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;

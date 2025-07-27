@@ -4,27 +4,23 @@ using Microsoft.EntityFrameworkCore;
 using LibraryApi.Data;
 using LibraryApi.Middlewares;
 using LibraryApi.Models;
-using LibraryApi.OptionsConfiguration;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
 using LibraryApi.Extensions;
-using Asp.Versioning.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Start Services
-// Represents everything about the current HTTP Request
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpContextAccessor(); // Represents everything about the current HTTP Request
 builder.Services.AddDataProtection();
 builder.Services.AddControllers().AddNewtonsoftJson();
 
+builder.Services.AddCustomRateLimiting();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBasedOnPolicy();
 
 builder.Services.AddAllowedHostsCors(builder.Configuration);
-builder.Services.AddCustomCaching(builder.Configuration);
+builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
 
 builder.Services.AddCustomApiVersioning();
 builder.Services.AddCustomSwagger();
@@ -59,8 +55,9 @@ using (var scope = app.Services.CreateScope())
 // Start Middlewares
 app.UseCustomSwagger();
 app.UseStaticFiles();
-app.UseOutputCache();
+//app.UseOutputCache(); // Redis Cache
 app.UseCors();
+app.UseRateLimiter();
 
 app.UseExceptionLogging();
 //app.UseLogPetition();

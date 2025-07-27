@@ -2,13 +2,15 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using LibraryApi.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
-    [ApiController, Route("api/v{version:apiVersion}/security")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
-    [Tags("Test API - Hashing, Encryption, and Decryption")]
+    [EnableRateLimiting("general")]
+    [Tags("Security - Hashing, Encryption, and Decryption")]
+    [ApiController, Route("api/v{version:apiVersion}/security")]
     public class SecurityController : ControllerBase
     {
         private readonly IDataProtector protector;

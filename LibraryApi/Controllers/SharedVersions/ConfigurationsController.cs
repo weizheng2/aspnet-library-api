@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using LibraryApi.OptionsConfiguration;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
-    [ApiController, Route("api/v{version:apiVersion}/configurations")]
     [ApiVersion("1.0"), ApiVersion("2.0")]
+    [EnableRateLimiting("general")]
+    [ApiController, Route("api/v{version:apiVersion}/configurations")]
     public class ConfigurationsController : ControllerBase
     {
         private readonly IConfiguration _configuration;

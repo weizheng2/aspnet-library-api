@@ -4,14 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using LibraryApi.Data;
 using LibraryApi.DTOs;
 using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     [ApiVersion("1.0")]
     [Authorize]
-    [Tags("AuthorsCollection")]
-    [ControllerName("AuthorsCollectionV1")]
+    [EnableRateLimiting("general")]
+    [ControllerName("AuthorsCollectionV1"), Tags("AuthorsCollection")]
+    [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     public class AuthorsCollectionV1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
