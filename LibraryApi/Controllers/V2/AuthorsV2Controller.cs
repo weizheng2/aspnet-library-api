@@ -15,7 +15,8 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("2.0")]
+    [ApiVersion("1.0")]
+    [Authorize]
     [EnableRateLimiting("general")]
     [ControllerName("AuthorsV2"), Tags("Authors")]
     [ApiController, Route("api/v{version:apiVersion}/authors")]
@@ -35,6 +36,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         //[OutputCache(Tags = [cache])]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
         {
@@ -48,6 +50,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("with-filter")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<GetAuthorDto>>> GetAuthorsWithFilter([FromQuery] PaginationDto paginationDto, [FromQuery] AuthorFilterDto authorFilterDto)
         {
             var queryable = _context.Authors.AsQueryable();
@@ -103,15 +106,16 @@ namespace LibraryApi.Controllers
             }
         }
 
+
         [HttpGet("{id}")]
         //[OutputCache(Tags = [cache])]
-        public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id, bool includeBooks = true)
+        [AllowAnonymous]
+        public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id)
         {
-            var queryable = _context.Authors.AsQueryable();
-            if (includeBooks)
-                queryable = queryable.Include(a => a.Books).ThenInclude(ab => ab.Book);
-
-            var author = await queryable.FirstOrDefaultAsync(a => a.Id == id);
+            var author = await _context.Authors
+                                        .Include(a => a.Books)
+                                            .ThenInclude(ab => ab.Book)
+                                        .FirstOrDefaultAsync(a => a.Id == id);
             if (author == null)
                 return NotFound();
 

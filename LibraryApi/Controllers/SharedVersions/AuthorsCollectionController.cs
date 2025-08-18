@@ -8,19 +8,21 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("2.0")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
+    [Authorize]
     [EnableRateLimiting("general")]
-    [ControllerName("AuthorsCollectionV2"), Tags("AuthorsCollection")]
+    [ControllerName("AuthorsCollectionV1"), Tags("AuthorsCollection")]
     [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
-    public class AuthorsCollectionV2Controller : ControllerBase
+    public class AuthorsCollectionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public AuthorsCollectionV2Controller(ApplicationDbContext context)
+        public AuthorsCollectionController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         [HttpGet("{ids}")] // api/authors-collection/1,2,3
+        [AllowAnonymous]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorsByIds(string ids)
         {
             var idsList = new List<int>();

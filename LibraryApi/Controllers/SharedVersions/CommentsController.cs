@@ -10,17 +10,17 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
     [Authorize]
     [EnableRateLimiting("general")]
-    [ControllerName("CommentsV1"), Tags("Comments")]
+    [ControllerName("Comments"), Tags("Comments")]
     [ApiController, Route("api/v{version:apiVersion}/books/{bookId:int}/comments")]
-    public class CommentsV1Controller : ControllerBase
+    public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IUserServices _userServices;
 
-        public CommentsV1Controller(ApplicationDbContext context, IUserServices userServices)
+        public CommentsController(ApplicationDbContext context, IUserServices userServices)
         {
             _context = context;
             _userServices = userServices;

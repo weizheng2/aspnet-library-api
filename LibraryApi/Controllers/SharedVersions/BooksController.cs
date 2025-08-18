@@ -11,16 +11,17 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("2.0")]
+    [ApiVersion("1.0"), ApiVersion("2.0")]
+    [Authorize]
     [EnableRateLimiting("general")]
-    [ControllerName("BooksV2"), Tags("Books")]
+    [ControllerName("Books"), Tags("Books")]
     [ApiController, Route("api/v{version:apiVersion}/books")]
-    public class BooksV2Controller : ControllerBase
+    public class BooksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly ITimeLimitedDataProtector limitedTimeprotector;
 
-        public BooksV2Controller(ApplicationDbContext context, IDataProtectionProvider protectionProvider)
+        public BooksController(ApplicationDbContext context, IDataProtectionProvider protectionProvider)
         {
             _context = context;
 
@@ -28,6 +29,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<GetBookDto>>> GetBooks([FromQuery] PaginationDto paginationDto)
         {
             var queryable = _context.Books.AsQueryable();
@@ -56,6 +58,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("limited-time-books/{token}")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<GetBookDto>>> GetBooksLimitedTime(string token)
         {
             try
@@ -75,6 +78,7 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetBookWithAuthorsAndCommentsDto>> GetBookById(int id)
         {
             var book = await _context.Books

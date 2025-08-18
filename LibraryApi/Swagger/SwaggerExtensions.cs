@@ -75,14 +75,15 @@ namespace LibraryApi.Swagger
                     }
                     else
                     {
+                        /*
                         customDescription = groupName switch
                         {
                             "v1" => "Web API to work with authors and book data.<br/>" +
-                                    "This version has authorization enabled. Try V2 for a public version.<br/>" +
-                                    "Log in or sign up in the User section to get a JWT token. Then, click the 'Authorize' button and enter your token: type 'Bearer' followed by a space, and then your token.",
+                                    "This version has authorization enabled. Try V2 for a public version.<br/>",
                             "v2" => "Web API to work with authors and book data.<br/>This version does not have authorization enabled. Try V1 for a version with authorization.",
                             _ => "Web API to work with authors and book data"
                         };
+                        */
                      }
                  
                     options.SwaggerDoc(groupName, new OpenApiInfo

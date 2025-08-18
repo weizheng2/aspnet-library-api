@@ -9,7 +9,6 @@ namespace LibraryApi.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     [ApiVersion("1.0"), ApiVersion("2.0")]
     [EnableRateLimiting("general")]
-    [Tags("Security - Hashing, Encryption, and Decryption")]
     [ApiController, Route("api/v{version:apiVersion}/security")]
     public class SecurityController : ControllerBase
     {
