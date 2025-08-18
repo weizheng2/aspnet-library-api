@@ -17,14 +17,6 @@ namespace LibraryApi.DTOs
             };
         }
 
-        public static PatchCommentDto ToPatchCommentDto(this Comment comment)
-        {
-            return new PatchCommentDto
-            {
-                Content = comment.Content
-            };
-        }
-
         public static Comment ToComment(this CreateCommentDto createCommentDto, int bookId, User user)
         {
             return new Comment

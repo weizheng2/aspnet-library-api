@@ -19,8 +19,8 @@ builder.Services.AddCustomRateLimiting();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBasedOnPolicy();
 
-builder.Services.AddAllowedHostsCors(builder.Configuration);
-builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
+//builder.Services.AddAllowedHostsCors(builder.Configuration);
+//builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
 
 builder.Services.AddCustomApiVersioning();
 builder.Services.AddCustomSwagger();
@@ -36,10 +36,13 @@ builder.Services.AddIdentityCore<User>().AddEntityFrameworkStores<ApplicationDbC
 builder.Services.AddScoped<UserManager<User>>();
 builder.Services.AddScoped<SignInManager<User>>();
 
-builder.Services.AddTransient<IUserServices, UserServices>();
-builder.Services.AddTransient<IHashService, HashService>();
-builder.Services.AddTransient<IArchiveStorage, ArchiveStorageAzure>();
-//builder.Services.AddTransient<IArchiveStorage, ArchiveStorageLocal>();
+builder.Services.AddScoped<IHashService, HashService>();
+builder.Services.AddScoped<IArchiveStorage, ArchiveStorageAzure>();
+//builder.Services.AddScoped<IArchiveStorage, ArchiveStorageLocal>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+
+
 
 var app = builder.Build();
 
@@ -56,7 +59,7 @@ using (var scope = app.Services.CreateScope())
 app.UseCustomSwagger();
 app.UseStaticFiles();
 //app.UseOutputCache(); // Redis Cache
-app.UseCors();
+//app.UseCors();
 app.UseRateLimiter();
 
 app.UseExceptionLogging();
