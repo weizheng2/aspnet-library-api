@@ -180,36 +180,6 @@ namespace LibraryApi.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id}")]
-        public async Task<ActionResult> PatchAuthor(int id, JsonPatchDocument<PatchAuthorDto> patchDocument)
-        {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null)
-            {
-                return NotFound();
-            }
-
-            var patchAuthorDto = author.ToPatchAuthorDto();
-
-            patchDocument.ApplyTo(patchAuthorDto, ModelState);
-
-            if (!TryValidateModel(patchAuthorDto))
-            {
-                return ValidationProblem();
-            }
-
-            author.UpdateAuthorFromPatch(patchAuthorDto);
-            await _context.SaveChangesAsync();
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            return NoContent();
-        }
-
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAuthor(int id)
         {

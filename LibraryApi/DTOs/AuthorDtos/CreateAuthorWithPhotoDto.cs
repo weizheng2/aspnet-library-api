@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using LibraryApi.Validations;
-
 namespace LibraryApi.DTOs
 {
     public class CreateAuthorWithPhotoDto : CreateAuthorDto
