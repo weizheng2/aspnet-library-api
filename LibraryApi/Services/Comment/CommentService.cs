@@ -2,9 +2,6 @@ using LibraryApi.DTOs;
 using LibraryApi.Data;
 using LibraryApi.Utils;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
-using System.ComponentModel.DataAnnotations;
 
 namespace LibraryApi.Services
 {
@@ -18,7 +15,6 @@ namespace LibraryApi.Services
             _context = context;
             _userService = userService;
         }
-
 
         public async Task<Result<List<GetCommentDto>>> GetComments(int bookId)
         {
