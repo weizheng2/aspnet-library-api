@@ -41,7 +41,7 @@ builder.Services.AddScoped<IArchiveStorage, ArchiveStorageAzure>();
 //builder.Services.AddScoped<IArchiveStorage, ArchiveStorageLocal>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
-
+builder.Services.AddScoped<IBookService, BookService>();
 
 
 var app = builder.Build();

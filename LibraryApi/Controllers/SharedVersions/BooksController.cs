@@ -1,190 +1,96 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using LibraryApi.Data;
 using LibraryApi.DTOs;
-using LibraryApi.Models;
-using LibraryApi.Utils;
 using Asp.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
+using LibraryApi.Services;
+using LibraryApi.Utils;
 
 namespace LibraryApi.Controllers
 {
     [ApiVersion("1.0")]
     [Authorize]
-    [EnableRateLimiting("general")]
+    [EnableRateLimiting(Constants.RateLimitGeneral)]
     [ControllerName("Books"), Tags("Books")]
     [ApiController, Route("api/v{version:apiVersion}/books")]
     public class BooksController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ITimeLimitedDataProtector limitedTimeprotector;
+        private readonly IBookService _bookService;
 
-        public BooksController(ApplicationDbContext context, IDataProtectionProvider protectionProvider)
+        public BooksController(IBookService bookService)
         {
-            _context = context;
-
-            limitedTimeprotector = protectionProvider.CreateProtector("SecurityController").ToTimeLimitedDataProtector();
+            _bookService = bookService;
         }
 
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<List<GetBookDto>>> GetBooks([FromQuery] PaginationDto paginationDto)
         {
-            var queryable = _context.Books.AsQueryable();
-            await HttpContext.AddPaginationToHeader(queryable);
-
-            var books = await queryable.Page(paginationDto).ToListAsync();
-            var booksDto = books.Select(b => b.ToGetBookDto()).ToList();
-
-            return Ok(booksDto);
-        }
-
-        [HttpGet("get-token")]
-        public ActionResult GetEncryptedToken()
-        {
-            string plainText = Guid.NewGuid().ToString();
-            string token = limitedTimeprotector.Protect(plainText, lifetime: TimeSpan.FromSeconds(30));
-
-            var url = Url.Action(
-                action: nameof(GetBooksLimitedTime),
-                controller: null, // same controller
-                values: new { token },
-                protocol: "https"
-            );
-
-            return Ok(new { url });
-        }
-
-        [HttpGet("limited-time-books/{token}")]
-        [AllowAnonymous]
-        public async Task<ActionResult<List<GetBookDto>>> GetBooksLimitedTime(string token)
-        {
-            try
-            {
-                limitedTimeprotector.Unprotect(token);
-            }
-            catch
-            {
-                ModelState.AddModelError(nameof(token), "Token expired");
-                return ValidationProblem();
-            }
-
-            var books = await _context.Books.ToListAsync();
-            var booksDto = books.Select(b => b.ToGetBookDto()).ToList();
-
-            return Ok(booksDto);
+            var result = await _bookService.GetBooks(paginationDto);
+            return Ok(result.Data);
         }
 
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<ActionResult<GetBookWithAuthorsAndCommentsDto>> GetBookById(int id)
         {
-            var book = await _context.Books
-                                    .Include(b => b.Authors)
-                                        .ThenInclude(ab => ab.Author)
-                                    .Include(b => b.Comments)
-                                    .FirstOrDefaultAsync(b => b.Id == id);
-            if (book == null)
-                return NotFound();
+            var result = await _bookService.GetBookById(id);
+            if (result.IsSuccess)
+                return Ok(result.Data);
 
-            var getBookWithAuthorsAndCommentsDto = book.ToGetBookWithAuthorAndCommentsDto();
-            return Ok(getBookWithAuthorsAndCommentsDto);
+            return NotFound(result.ErrorMessage);
         }
 
         [HttpPost]
         public async Task<ActionResult> CreateBook(CreateBookWithAuthorsDto createBookDto)
         {
-            if (createBookDto.AuthorsId == null || createBookDto.AuthorsId.Count <= 0)
+            // if (createBookDto.AuthorsId == null || createBookDto.AuthorsId.Count <= 0)
+            // {
+            //     return BadRequest("At least one author must be specified.");
+            // }
+
+            var result = await _bookService.CreateBook(createBookDto);
+            if (result.IsSuccess)
             {
-                return BadRequest("At least one author must be specified.");
+                var book = result.Data;
+                var apiVersion = HttpContext.GetRequestedApiVersion()?.ToString() ?? "1";
+                return CreatedAtAction(
+                    nameof(GetBookById),
+                    new { id = book.Id, version = apiVersion },
+                    book
+                );
             }
 
-
-            var existingAuthors = await _context.Authors.Where(a => createBookDto.AuthorsId.Contains(a.Id))
-                                      .Select(a => a.Id)
-                                      .ToListAsync();
-
-            if (existingAuthors.Count != createBookDto.AuthorsId.Count)
-            {
-                var notExistingAuthors = createBookDto.AuthorsId.Except(existingAuthors);
-                return BadRequest("Authors not found " + string.Join(", ", notExistingAuthors));
-            }
-
-
-            var book = createBookDto.ToBook();
-            OrderAuthors(book);
-
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book.ToGetBookDto());
-        }
-
-        private void OrderAuthors(Book book)
-        {
-            if (book.Authors == null || !book.Authors.Any())
-                return;
-
-            for (int i = 0; i < book.Authors.Count; i++)
-            {
-                book.Authors[i].Order = i;
-            }
+            return NotFound(result.ErrorMessage);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBook(int id, UpdateBookDto updateBookDto)
         {
-            if (updateBookDto.AuthorsId == null || !updateBookDto.AuthorsId.Any())
+            var result = await _bookService.UpdateBook(id, updateBookDto);
+            if (result.IsSuccess)
+                return NoContent();
+
+            switch (result.ErrorType)
             {
-                return BadRequest("At least one author must be specified.");
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
+                default: return BadRequest(result.ErrorMessage);
             }
-
-            var existingAuthors = await _context.Authors.Where(a => updateBookDto.AuthorsId.Contains(a.Id))
-                                      .Select(a => a.Id)
-                                      .ToListAsync();
-
-            if (existingAuthors.Count != updateBookDto.AuthorsId.Count)
-            {
-                var notExistingAuthors = updateBookDto.AuthorsId.Except(existingAuthors);
-                return BadRequest("Authors not found " + string.Join(", ", notExistingAuthors));
-            }
-
-            var book = await _context.Books
-                                    .Include(a => a.Authors)
-                                    .FirstOrDefaultAsync(a => a.Id == id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            book.Title = updateBookDto.Title;
-
-            book.Authors.Clear();
-            foreach (var authorId in updateBookDto.AuthorsId)
-                book.Authors.Add(new AuthorBook { AuthorId = authorId, BookId = book.Id });
-
-            OrderAuthors(book);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FirstOrDefaultAsync(a => a.Id == id);
-            if (book == null)
+            var result = await _bookService.DeleteBook(id);
+            if (result.IsSuccess)
+                return NoContent();
+
+            switch (result.ErrorType)
             {
-                return NotFound();
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
+                case ResultErrorType.Forbidden: return StatusCode(StatusCodes.Status403Forbidden, result.ErrorMessage);
+                default: return BadRequest(result.ErrorMessage);
             }
-
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
     }
 }
