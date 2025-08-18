@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("1.0"), ApiVersion("2.0")]
+    [ApiVersion("1.0")]
     [ApiController, Route("api/v{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {

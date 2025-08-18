@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace LibraryApi.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
-    [ApiVersion("1.0"), ApiVersion("2.0")]
+    [ApiVersion("1.0")]
     [EnableRateLimiting("general")]
     [ApiController, Route("api/v{version:apiVersion}/configurations")]
     public class ConfigurationsController : ControllerBase

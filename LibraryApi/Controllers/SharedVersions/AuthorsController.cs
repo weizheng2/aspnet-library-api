@@ -18,9 +18,9 @@ namespace LibraryApi.Controllers
     [ApiVersion("1.0")]
     [Authorize]
     [EnableRateLimiting("general")]
-    [ControllerName("AuthorsV1"), Tags("Authors")]
+    [ControllerName("Authors"), Tags("Authors")]
     [ApiController, Route("api/v{version:apiVersion}/authors")]
-    public class AuthorsV1Controller : ControllerBase
+    public class AuthorsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IArchiveStorage _archiveStorage;
@@ -28,7 +28,7 @@ namespace LibraryApi.Controllers
 
         private const string container = "authors";
         private const string cache = "get-authors";
-        public AuthorsV1Controller(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
+        public AuthorsController(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
         {
             _context = context;
             _archiveStorage = archiveStorage;

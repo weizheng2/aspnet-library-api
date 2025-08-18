@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibraryApi.Controllers
 {
-    [ApiVersion("1.0"), ApiVersion("2.0")]
+    [ApiVersion("1.0")]
     [Authorize]
     [EnableRateLimiting("general")]
     [ControllerName("Comments"), Tags("Comments")]

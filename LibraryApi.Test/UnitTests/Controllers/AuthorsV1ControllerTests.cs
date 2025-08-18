@@ -20,7 +20,7 @@ namespace LibraryApiTests.UnitTests.Controllers
         Mock<IOutputCacheStore> mockCacheStore = null!;
         Mock<IObjectModelValidator> mockObjectValidator = null!;
         private string dbName = Guid.NewGuid().ToString();
-        private AuthorsV1Controller controller = null!;
+        private AuthorsController controller = null!;
 
         public AuthorsV1ControllerTests()
         {
@@ -32,7 +32,7 @@ namespace LibraryApiTests.UnitTests.Controllers
         private void InitializeController()
         {
             var context = BuildContext(dbName);
-            controller = new AuthorsV1Controller(context, mockArchiveStorage.Object, mockCacheStore.Object);
+            controller = new AuthorsController(context, mockArchiveStorage.Object, mockCacheStore.Object);
             controller.ControllerContext = new ControllerContext() { HttpContext = new DefaultHttpContext() };
         }
 
