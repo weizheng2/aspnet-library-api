@@ -85,7 +85,7 @@ namespace LibraryApi.Controllers
 
             switch (result.ErrorType)
             {
-                case ResultErrorType.NotFound: return NotFound();
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
                 case ResultErrorType.Forbidden: return StatusCode(StatusCodes.Status403Forbidden, result.ErrorMessage);
                 default: return BadRequest(result.ErrorMessage);
             }
