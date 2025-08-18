@@ -44,11 +44,6 @@ namespace LibraryApi.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateBook(CreateBookWithAuthorsDto createBookDto)
         {
-            // if (createBookDto.AuthorsId == null || createBookDto.AuthorsId.Count <= 0)
-            // {
-            //     return BadRequest("At least one author must be specified.");
-            // }
-
             var result = await _bookService.CreateBook(createBookDto);
             if (result.IsSuccess)
             {
@@ -94,5 +89,3 @@ namespace LibraryApi.Controllers
         }
     }
 }
-
-
