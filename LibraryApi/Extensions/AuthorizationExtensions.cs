@@ -7,7 +7,7 @@ namespace LibraryApi.Extensions
         {
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("isAdmin", policy => policy.RequireClaim("isAdmin"));
+                options.AddPolicy(Constants.PolicyIsAdmin, policy => policy.RequireClaim(Constants.PolicyIsAdmin));
             });
 
             return services;

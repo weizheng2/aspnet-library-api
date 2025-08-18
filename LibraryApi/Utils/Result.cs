@@ -5,7 +5,8 @@ namespace LibraryApi.Utils
         None,
         NotFound,
         BadRequest,
-        ServerError
+        Forbidden,
+        ServerError,
     }
 
     public class Result<T>

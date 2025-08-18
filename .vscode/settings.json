@@ -1,4 +1,0 @@
-{
-    "appService.defaultWebAppToDeploy": "/subscriptions/4dd40e30-7f4f-4eb8-8016-46c987975609/resourceGroups/appsvc_windows_spaincentral/providers/Microsoft.Web/sites/library-api",
-    "appService.deploySubpath": "LibraryApi\\bin\\Publish"
-}
