@@ -44,6 +44,9 @@ namespace LibraryApi.Services
 
         public async Task<Result<GetBookDto>> CreateBook(CreateBookWithAuthorsDto createBookDto)
         {
+            if (createBookDto.AuthorsId == null || createBookDto.AuthorsId.Count == 0)
+                return Result<GetBookDto>.Failure(ResultErrorType.BadRequest, "At least one author is required");
+  
             var existingAuthors = await _context.Authors.Where(a => createBookDto.AuthorsId.Contains(a.Id))
                                       .Select(a => a.Id)
                                       .ToListAsync();
