@@ -1,4 +1,3 @@
-using Xunit;
 using Microsoft.EntityFrameworkCore;
 using LibraryApi.Services;
 using LibraryApi.Data;
