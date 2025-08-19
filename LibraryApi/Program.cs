@@ -20,7 +20,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorizationBasedOnPolicy();
 
 //builder.Services.AddAllowedHostsCors(builder.Configuration);
-//builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
+builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
 
 builder.Services.AddCustomApiVersioning();
 builder.Services.AddCustomSwagger();
@@ -39,9 +39,11 @@ builder.Services.AddScoped<SignInManager<User>>();
 builder.Services.AddScoped<IHashService, HashService>();
 builder.Services.AddScoped<IArchiveStorage, ArchiveStorageAzure>();
 //builder.Services.AddScoped<IArchiveStorage, ArchiveStorageLocal>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
 
 
 var app = builder.Build();
@@ -58,7 +60,7 @@ using (var scope = app.Services.CreateScope())
 // Start Middlewares
 app.UseCustomSwagger();
 app.UseStaticFiles();
-//app.UseOutputCache(); // Redis Cache
+app.UseOutputCache();
 //app.UseCors();
 app.UseRateLimiter();
 

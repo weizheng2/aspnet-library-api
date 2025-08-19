@@ -4,7 +4,6 @@ using LibraryApi.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using LibraryApi.Models;
-using Microsoft.AspNetCore.OutputCaching;
 
 namespace LibraryApi.Services
 {
@@ -12,16 +11,13 @@ namespace LibraryApi.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IArchiveStorage _archiveStorage;
-        private readonly IOutputCacheStore _outputCacheStore;
 
         private const string container = "authors";
-        private const string cache = "get-authors";
         
-        public AuthorService(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
+        public AuthorService(ApplicationDbContext context, IArchiveStorage archiveStorage)
         {
             _context = context;
             _archiveStorage = archiveStorage;
-            _outputCacheStore = outputCacheStore;
         }
 
         public async Task<Result<PagedResult<GetAuthorDto>>> GetAuthors(PaginationDto paginationDto)
@@ -37,61 +33,45 @@ namespace LibraryApi.Services
             return Result<PagedResult<GetAuthorDto>>.Success(result);
         }
 
-        public async Task<Result<PagedResult<GetAuthorDto>>> GetAuthorsWithFilter(PaginationDto paginationDto, AuthorFilterDto authorFilterDto)
+        public async Task<Result<PagedResult<GetAuthorWithBooksDto>>> GetAuthorsWithFilter(PaginationDto paginationDto, AuthorFilterDto authorFilterDto)
         {
             var query = _context.Authors.AsQueryable();
+
+            // Filters
             if (!string.IsNullOrEmpty(authorFilterDto.Names))
                 query = query.Where(a => a.FirstName.Contains(authorFilterDto.Names));
 
             if (!string.IsNullOrEmpty(authorFilterDto.LastNames))
                 query = query.Where(a => a.LastName.Contains(authorFilterDto.LastNames));
 
-            if (authorFilterDto.HasBooks.HasValue)
-            {
-                if (authorFilterDto.HasBooks.Value)
-                    query = query.Where(a => a.Books.Any());
-                else
-                    query = query.Where(a => !a.Books.Any());
-            }
+            if (authorFilterDto.HasBooks is not null)
+                query = authorFilterDto.HasBooks.Value ? query.Where(a => a.Books.Any()) : query.Where(a => !a.Books.Any());
 
+            if (authorFilterDto.HasPhoto is not null)
+                query = authorFilterDto.HasPhoto.Value ? query.Where(a => a.PhotoUrl != null) : query.Where(a => a.PhotoUrl == null);
+
+            // Includes
             if (authorFilterDto.IncludeBooks)
                 query = query.Include(a => a.Books).ThenInclude(ab => ab.Book);
 
-
-            if (authorFilterDto.HasPhoto.HasValue)
-            {
-                if (authorFilterDto.HasPhoto.Value)
-                    query = query.Where(a => a.PhotoUrl != null);
-                else
-                    query = query.Where(a => a.PhotoUrl == null);
-            }
-
+            // Ordering
             var orderBySelectors = new Dictionary<AuthorOrderBy, Expression<Func<Author, object>>>
             {
                 [AuthorOrderBy.FirstName] = a => a.FirstName!,
                 [AuthorOrderBy.LastName] = a => a.LastName!
             };
 
-            if (authorFilterDto.OrderBy.HasValue && orderBySelectors.TryGetValue(authorFilterDto.OrderBy.Value, out var selector))
-                query = authorFilterDto.AscendingOrder ? query.OrderBy(selector) : query.OrderByDescending(selector);
-            else
-                query = query.OrderBy(a => a.FirstName);
+            query = authorFilterDto.OrderBy is not null && orderBySelectors.TryGetValue(authorFilterDto.OrderBy.Value, out var selector)
+                    ? (authorFilterDto.AscendingOrder ? query.OrderBy(selector) : query.OrderByDescending(selector))
+                    : query.OrderBy(a => a.FirstName);
 
             var totalRecords = await query.CountAsync();
-
             var authorsDto = await query.Page(paginationDto)
-                           .Select(a => a.ToGetAuthorDto())
-                           .ToListAsync();
-                           
-            if (authorFilterDto.IncludeBooks)
-            {
-                authorsDto = await query.Page(paginationDto)
-                          .Select(a => a.ToGetAuthorDto())
-                          .ToListAsync();
-            }
-         
+                        .Select(a => a.ToGetAuthorWithBooksDto())
+                        .ToListAsync();
+
             var result = PagedResultHelper.Create(authorsDto, totalRecords, paginationDto);
-            return Result<PagedResult<GetAuthorDto>>.Success(result);
+            return Result<PagedResult<GetAuthorWithBooksDto>>.Success(result);
         }
 
         public async Task<Result<GetAuthorWithBooksDto>> GetAuthorById(int id)
@@ -111,7 +91,7 @@ namespace LibraryApi.Services
         {
             if (createAuthorDto.Identification != null)
             {
-                var existingAuthor = _context.Authors.FirstOrDefaultAsync(a => a.Identification == createAuthorDto.Identification);
+                var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.Identification == createAuthorDto.Identification);
                 if (existingAuthor != null)
                     return Result<GetAuthorDto>.Failure(ResultErrorType.BadRequest, "Author already exists");
             }
@@ -120,10 +100,6 @@ namespace LibraryApi.Services
 
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
-
-            // Remove cache since we added new data
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
             return Result<GetAuthorDto>.Success(author.ToGetAuthorDto());
         }
 
@@ -131,7 +107,7 @@ namespace LibraryApi.Services
         {
             if (createAuthorDto.Identification != null)
             {
-                var existingAuthor = _context.Authors.FirstOrDefaultAsync(a => a.Identification == createAuthorDto.Identification);
+                var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.Identification == createAuthorDto.Identification);
                 if (existingAuthor != null)
                     return Result<GetAuthorDto>.Failure(ResultErrorType.BadRequest, "Author already exists");
             }
@@ -146,8 +122,6 @@ namespace LibraryApi.Services
 
             _context.Authors.Add(author);
             await _context.SaveChangesAsync();
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
             return Result<GetAuthorDto>.Success(author.ToGetAuthorDto());
         }
 
@@ -168,11 +142,8 @@ namespace LibraryApi.Services
             author.Identification = updateAuthorDto.Identification;
 
             await _context.SaveChangesAsync();
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
             return Result.Success();
         }
-
 
         public async Task<Result> DeleteAuthor(int id)
         {
@@ -184,8 +155,6 @@ namespace LibraryApi.Services
             await _context.SaveChangesAsync();
 
             await _archiveStorage.Remove(author.PhotoUrl, container);
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
             return Result.Success();
         }
     }

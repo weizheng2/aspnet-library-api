@@ -4,13 +4,7 @@ namespace LibraryApi.Extensions
     {
         public static IServiceCollection AddCustomCaching(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddOutputCache(options =>
-            {
-                options.AddBasePolicy(policy =>
-                {
-                    policy.Expire(TimeSpan.FromMinutes(5));
-                });
-            });
+            services.AddOutputCache(); 
 
             services.AddStackExchangeRedisOutputCache(options =>
             {

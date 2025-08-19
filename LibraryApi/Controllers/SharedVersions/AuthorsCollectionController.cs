@@ -10,8 +10,8 @@ namespace LibraryApi.Controllers
 {
     [ApiVersion("1.0")]
     [Authorize]
-    [EnableRateLimiting("general")]
-    [ControllerName("AuthorsCollectionV1"), Tags("AuthorsCollection")]
+    [EnableRateLimiting(Constants.RateLimitGeneral)]
+    [ControllerName("AuthorsCollection"), Tags("AuthorsCollection")]
     [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     public class AuthorsCollectionController : ControllerBase
     {

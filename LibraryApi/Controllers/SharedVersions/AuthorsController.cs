@@ -1,14 +1,9 @@
 using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using LibraryApi.Data;
 using LibraryApi.DTOs;
 using LibraryApi.Services;
 using LibraryApi.Utils;
-using LibraryApi.Models;
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.OutputCaching;
 using Asp.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
@@ -17,185 +12,118 @@ namespace LibraryApi.Controllers
 {
     [ApiVersion("1.0")]
     [Authorize]
-    [EnableRateLimiting("general")]
+    [EnableRateLimiting(Constants.RateLimitGeneral)]
     [ControllerName("Authors"), Tags("Authors")]
     [ApiController, Route("api/v{version:apiVersion}/authors")]
     public class AuthorsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IArchiveStorage _archiveStorage;
         private readonly IOutputCacheStore _outputCacheStore;
+        private readonly IAuthorService _authorService;
 
-        private const string container = "authors";
         private const string cache = "get-authors";
-        public AuthorsController(ApplicationDbContext context, IArchiveStorage archiveStorage, IOutputCacheStore outputCacheStore)
+        public AuthorsController(IOutputCacheStore outputCacheStore, IAuthorService authorService)
         {
-            _context = context;
-            _archiveStorage = archiveStorage;
             _outputCacheStore = outputCacheStore;
+            _authorService = authorService;
         }
 
         [HttpGet]
         [AllowAnonymous]
-        //[OutputCache(Tags = [cache])]
-        public async Task<ActionResult<List<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
+        //[OutputCache(Tags = [cache], Duration = 300)]
+        public async Task<ActionResult<PagedResult<GetAuthorDto>>> GetAuthors([FromQuery] PaginationDto paginationDto)
         {
-            var queryable = _context.Authors.AsQueryable();
-            await HttpContext.AddPaginationToHeader(queryable);
-
-            var authors = await queryable.Page(paginationDto).ToListAsync();
-            var authorsDto = authors.Select(a => a.ToGetAuthorDto()).ToList();
-
-            return Ok(authorsDto);
+            var result = await _authorService.GetAuthors(paginationDto);
+            return Ok(result.Data);
         }
 
         [HttpGet("with-filter")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<GetAuthorDto>>> GetAuthorsWithFilter([FromQuery] PaginationDto paginationDto, [FromQuery] AuthorFilterDto authorFilterDto)
+        public async Task<ActionResult<PagedResult<GetAuthorWithBooksDto>>> GetAuthorsWithFilter([FromQuery] PaginationDto paginationDto, [FromQuery] AuthorFilterDto authorFilterDto)
         {
-            var queryable = _context.Authors.AsQueryable();
-            if (!string.IsNullOrEmpty(authorFilterDto.Names))
-                queryable = queryable.Where(a => a.FirstName.Contains(authorFilterDto.Names));
-
-            if (!string.IsNullOrEmpty(authorFilterDto.LastNames))
-                queryable = queryable.Where(a => a.LastName.Contains(authorFilterDto.LastNames));
-
-            if (authorFilterDto.HasBooks.HasValue)
-            {
-                if (authorFilterDto.HasBooks.Value)
-                    queryable = queryable.Where(a => a.Books.Any());
-                else
-                    queryable = queryable.Where(a => !a.Books.Any());
-            }
-
-            if (authorFilterDto.IncludeBooks)
-                queryable = queryable.Include(a => a.Books).ThenInclude(ab => ab.Book);
-
-
-            if (authorFilterDto.HasPhoto.HasValue)
-            {
-                if (authorFilterDto.HasPhoto.Value)
-                    queryable = queryable.Where(a => a.PhotoUrl != null);
-                else
-                    queryable = queryable.Where(a => a.PhotoUrl == null);
-            }
-
-            var orderBySelectors = new Dictionary<AuthorOrderBy, Expression<Func<Author, object>>>
-            {
-                [AuthorOrderBy.FirstName] = a => a.FirstName!,
-                [AuthorOrderBy.LastName] = a => a.LastName!
-            };
-
-            if (authorFilterDto.OrderBy.HasValue && orderBySelectors.TryGetValue(authorFilterDto.OrderBy.Value, out var selector))
-                queryable = authorFilterDto.AscendingOrder ? queryable.OrderBy(selector) : queryable.OrderByDescending(selector);
-            else
-                queryable = queryable.OrderBy(a => a.FirstName);
-
-            await HttpContext.AddPaginationToHeader(queryable);
-            var authors = await queryable.Page(paginationDto).ToListAsync();
-
-            if (authorFilterDto.IncludeBooks)
-            {
-                var authorsDto = authors.Select(a => a.ToGetAuthorWithBooksDto()).ToList();
-                return Ok(authorsDto);
-            }
-            else
-            {
-                var authorsDto = authors.Select(a => a.ToGetAuthorDto()).ToList();
-                return Ok(authorsDto);
-            }
+            var result = await _authorService.GetAuthorsWithFilter(paginationDto, authorFilterDto);
+            return Ok(result.Data);
         }
 
-
         [HttpGet("{id}")]
-        //[OutputCache(Tags = [cache])]
         [AllowAnonymous]
+        //[OutputCache(Tags = [cache])]
         public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorById([Description("Author Id")] int id)
         {
-            var author = await _context.Authors
-                                        .Include(a => a.Books)
-                                            .ThenInclude(ab => ab.Book)
-                                        .FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null)
-                return NotFound();
+            var result = await _authorService.GetAuthorById(id);
+            if (result.IsSuccess)
+                return Ok(result.Data);
 
-            var authorDto = author.ToGetAuthorWithBooksDto();
-            return Ok(authorDto);
+            return NotFound(result.ErrorMessage);
         }
 
         [HttpPost]
         public async Task<ActionResult> CreateAuthor(CreateAuthorDto createAuthorDto)
         {
-            var author = createAuthorDto.ToAuthor();
+            var result = await _authorService.CreateAuthor(createAuthorDto);
+            if (result.IsSuccess)
+            {
+                // Remove cache since new data was added
+                //await _outputCacheStore.EvictByTagAsync(cache, default);
 
-            _context.Authors.Add(author);
-            await _context.SaveChangesAsync();
+                var author = result.Data;
+                var apiVersion = HttpContext.GetRequestedApiVersion()?.ToString() ?? "1";
+                return CreatedAtAction(
+                    nameof(GetAuthorById),
+                    new { id = author.Id, version = apiVersion },
+                    author
+                );
+            }
 
-            // Remove cache since we added new data
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            var authorDto = author.ToGetAuthorDto();
-            return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
+            return BadRequest(result.ErrorMessage);
         }
 
         [HttpPost("with-photo")]
         public async Task<ActionResult> CreateAuthorWithPhoto([FromForm] CreateAuthorWithPhotoDto createAuthorDto)
         {
-            var author = createAuthorDto.ToAuthor();
-
-            if (createAuthorDto.Photo is not null)
+            var result = await _authorService.CreateAuthorWithPhoto(createAuthorDto);
+            if (result.IsSuccess)
             {
-                var url = await _archiveStorage.Store(container, createAuthorDto.Photo);
-                author.PhotoUrl = url;
+                // Remove cache since new data was added
+                //await _outputCacheStore.EvictByTagAsync(cache, default);
+
+                var author = result.Data;
+                var apiVersion = HttpContext.GetRequestedApiVersion()?.ToString() ?? "1";
+                return CreatedAtAction(
+                    nameof(GetAuthorById),
+                    new { id = author.Id, version = apiVersion },
+                    author
+                );
             }
 
-            _context.Authors.Add(author);
-            await _context.SaveChangesAsync();
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            var authorDto = author.ToGetAuthorDto();
-            return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, authorDto);
+            return BadRequest(result.ErrorMessage);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateAuthor(int id, [FromForm] UpdateAuthorWithPhotoDto updateAuthorDto)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null)
-                return NotFound();
-
-            if (updateAuthorDto.Photo is not null)
+            var result = await _authorService.UpdateAuthor(id, updateAuthorDto);
+            if (result.IsSuccess)
             {
-                var url = await _archiveStorage.Edit(author.PhotoUrl, container, updateAuthorDto.Photo);
-                author.PhotoUrl = url;
+                // Remove cache since the data is modified
+                //await _outputCacheStore.EvictByTagAsync(cache, default);
+                return NoContent();
             }
 
-            author.FirstName = updateAuthorDto.FirstName;
-            author.LastName = updateAuthorDto.LastName;
-            author.Identification = updateAuthorDto.Identification;
-
-            await _context.SaveChangesAsync();
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            return NoContent();
+            return NotFound(result.ErrorMessage);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAuthor(int id)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null)
+            var result = await _authorService.DeleteAuthor(id);
+            if (result.IsSuccess)
             {
-                return NotFound();
+                // Remove cache since the data is modified
+                //await _outputCacheStore.EvictByTagAsync(cache, default);
+                return NoContent();
             }
 
-            _context.Authors.Remove(author);
-            await _context.SaveChangesAsync();
-
-            await _archiveStorage.Remove(author.PhotoUrl, container);
-            //await _outputCacheStore.EvictByTagAsync(cache, default);
-
-            return NoContent();
+            return NotFound(result.ErrorMessage);
         }
     }
 }

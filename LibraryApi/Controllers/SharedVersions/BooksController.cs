@@ -24,7 +24,7 @@ namespace LibraryApi.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<List<GetBookDto>>> GetBooks([FromQuery] PaginationDto paginationDto)
+        public async Task<ActionResult<PagedResult<GetBookDto>>> GetBooks([FromQuery] PaginationDto paginationDto)
         {
             var result = await _bookService.GetBooks(paginationDto);
             return Ok(result.Data);

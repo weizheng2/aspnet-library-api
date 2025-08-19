@@ -12,7 +12,7 @@ namespace LibraryApiTests.UnitTests.Services
     {
         private Mock<UserManager<User>> mockUserManager;
         private Mock<IHttpContextAccessor> mockContextAccessor;
-        private UserServices userServices = null!;
+        private UserService userServices = null!;
 
         public UserServicesTest()
         {
@@ -22,7 +22,7 @@ namespace LibraryApiTests.UnitTests.Services
             );
 
             mockContextAccessor = new Mock<IHttpContextAccessor>();
-            userServices = new UserServices(mockUserManager.Object, mockContextAccessor.Object);
+            userServices = new UserService(mockUserManager.Object, mockContextAccessor.Object);
         }
 
        [Fact]
