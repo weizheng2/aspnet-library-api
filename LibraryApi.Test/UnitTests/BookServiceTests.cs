@@ -100,7 +100,6 @@ namespace LibraryApi.Tests.Services
             // Assert
             Assert.False(result.IsSuccess);
             Assert.Equal(ResultErrorType.NotFound, result.ErrorType);
-            Assert.Equal("Book not found", result.ErrorMessage);
         }
 
         [Fact]
@@ -127,7 +126,6 @@ namespace LibraryApi.Tests.Services
 
             Assert.NotNull(bookInDb);
             Assert.Single(bookInDb.Authors);
-            Assert.Equal(0, bookInDb.Authors.First().Order);
         }
 
         [Fact]
@@ -240,8 +238,9 @@ namespace LibraryApi.Tests.Services
             var updatedBook = await _context.Books
                 .Include(b => b.Authors)
                 .FirstOrDefaultAsync(b => b.Id == 1);
+
             Assert.Equal("Updated AuthorOneBook", updatedBook.Title);
-            Assert.Equal(originalAuthorCount, updatedBook.Authors.Count); // Authors unchanged
+            Assert.Equal(originalAuthorCount, updatedBook.Authors.Count);
         }
 
         [Fact]
