@@ -38,26 +38,6 @@ namespace LibraryApi.DTOs
             };
         }
 
-        public static PatchAuthorDto ToPatchAuthorDto(this Author author)
-        {
-            return new PatchAuthorDto
-            {
-                FirstName = author.FirstName,
-                LastName = author.LastName,
-                Identification = author.Identification
-            };
-        }
-
-        public static void UpdateAuthorFromPatch(this Author author, PatchAuthorDto dto)
-        {
-            if (dto.FirstName != null)
-                author.FirstName = dto.FirstName;
-
-            if (dto.LastName != null)
-                author.LastName = dto.LastName;
-
-            author.Identification = dto.Identification;
-        }
     }
 
 }
