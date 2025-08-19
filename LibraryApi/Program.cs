@@ -44,7 +44,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
-
+builder.Services.AddScoped<IAuthorsCollectionService, AuthorsCollectionService>();
 
 var app = builder.Build();
 

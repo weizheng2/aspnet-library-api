@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using LibraryApi.Data;
 using LibraryApi.DTOs;
 using Asp.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
+using LibraryApi.Services;
+using LibraryApi.Utils;
 
 namespace LibraryApi.Controllers
 {
@@ -15,61 +15,49 @@ namespace LibraryApi.Controllers
     [ApiController, Route("api/v{version:apiVersion}/authors-collection")]
     public class AuthorsCollectionController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        public AuthorsCollectionController(ApplicationDbContext context)
+        private readonly IAuthorsCollectionService _authorsCollectionService;
+        public AuthorsCollectionController(IAuthorsCollectionService authorsCollectionService)
         {
-            _context = context;
+            _authorsCollectionService = authorsCollectionService;
         }
 
         [HttpGet("{ids}")] // api/authors-collection/1,2,3
         [AllowAnonymous]
-        public async Task<ActionResult<GetAuthorWithBooksDto>> GetAuthorsByIds(string ids)
+        public async Task<ActionResult<List<GetAuthorWithBooksDto>>> GetAuthorsByIds(string ids)
         {
-            var idsList = new List<int>();
-            foreach (var id in ids.Split(','))
+            var result = await _authorsCollectionService.GetAuthorsByIds(ids);
+            if (result.IsSuccess)
+                return Ok(result.Data);
+
+            switch (result.ErrorType)
             {
-                if (int.TryParse(id, out int parsedId))
-                {
-                    idsList.Add(parsedId);
-                }
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
+                default: return BadRequest(result.ErrorMessage);
             }
-
-            if (idsList.Count == 0)
-            {
-                return BadRequest("No valid author IDs provided.");
-            }
-
-            var authors = await _context.Authors
-                                        .Include(a => a.Books)
-                                            .ThenInclude(ab => ab.Book)
-                                        .Where(a => idsList.Contains(a.Id))
-                                        .ToListAsync();
-
-            if (authors.Count != idsList.Count)
-            {
-                return NotFound("Some authors not found.");
-            }
-
-            var authorsDto = authors.Select(a => a.ToGetAuthorWithBooksDto()).ToList();
-            return Ok(authorsDto);
         }
 
         [HttpPost]
         public async Task<ActionResult> CreateAuthors(List<CreateAuthorDto> createAuthorDtos)
         {
-            if (createAuthorDtos == null || createAuthorDtos.Count == 0)
+           var result = await _authorsCollectionService.CreateAuthors(createAuthorDtos);
+           if (result.IsSuccess)
             {
-                return BadRequest("The list of authors cannot be empty.");
+                var authors = result.Data;
+                var idsString = string.Join(",", authors.Select(a => a.Id));
+
+                var apiVersion = HttpContext.GetRequestedApiVersion()?.ToString() ?? "1";
+                return CreatedAtAction(
+                    nameof(GetAuthorsByIds),
+                    new { ids = idsString, version = apiVersion },
+                    authors
+                );
             }
 
-            var authors = createAuthorDtos.Select(dto => dto.ToAuthor()).ToList();
-            _context.Authors.AddRange(authors);
-            await _context.SaveChangesAsync();
-
-            var authorsDto = authors.Select(a => a.ToGetAuthorDto()).ToList();
-            var idsString = string.Join(",", authors.Select(a => a.Id));
-
-            return CreatedAtAction(nameof(GetAuthorsByIds), new { ids = idsString }, authorsDto);
+            switch (result.ErrorType)
+            {
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
+                default: return BadRequest(result.ErrorMessage);
+            }
         }
 
     }
