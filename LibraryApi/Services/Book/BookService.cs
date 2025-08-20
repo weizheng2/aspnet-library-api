@@ -54,7 +54,7 @@ namespace LibraryApi.Services
             if (existingAuthors.Count != createBookDto.AuthorsId.Count)
             {
                 var notExistingAuthors = createBookDto.AuthorsId.Except(existingAuthors);
-                return Result<GetBookDto>.Failure(ResultErrorType.BadRequest, "Authors not found " + string.Join(", ", notExistingAuthors));
+                return Result<GetBookDto>.Failure(ResultErrorType.NotFound, "Authors not found " + string.Join(", ", notExistingAuthors));
             }
 
             var book = createBookDto.ToBook();
