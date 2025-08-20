@@ -19,7 +19,7 @@ Access the live API via Swagger (may take a few seconds to start if idle):
 
 ---
 
-## API Endpoints
+## 📡 API Endpoints
 
 <details>
 <summary>✍️ Authors Endpoints</summary>
@@ -86,7 +86,7 @@ Access the live API via Swagger (may take a few seconds to start if idle):
 
 ---
 
-## Getting Started
+## ⚙️ Getting Started
 
 ### Prerequisites
 - .NET 9.0 SDK
