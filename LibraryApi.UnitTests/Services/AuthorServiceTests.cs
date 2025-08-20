@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Moq;
 
-namespace LibraryApi.UnitTests.Services
+namespace LibraryApi.UnitTests
 {
     public class AuthorServiceTests : IDisposable
     {
@@ -88,7 +88,7 @@ namespace LibraryApi.UnitTests.Services
         {
             // Arrange
             var paginationDto = new PaginationDto { Page = 1, RecordsPerPage = 10 };
-            var filterDto = new AuthorFilterDto { Names = "John" };
+            var filterDto = new AuthorFilterDto { FirstName = "John" };
 
             // Act
             var result = await _authorService.GetAuthorsWithFilter(paginationDto, filterDto);

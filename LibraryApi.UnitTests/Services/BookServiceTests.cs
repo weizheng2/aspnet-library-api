@@ -5,7 +5,7 @@ using LibraryApi.Models;
 using LibraryApi.DTOs;
 using LibraryApi.Utils;
 
-namespace LibraryApi.UnitTests.Services
+namespace LibraryApi.UnitTests
 {
     public class BookServiceTests : IDisposable
     {
@@ -142,7 +142,7 @@ namespace LibraryApi.UnitTests.Services
 
             // Assert
             Assert.False(result.IsSuccess);
-            Assert.Equal(ResultErrorType.BadRequest, result.ErrorType);
+            Assert.Equal(ResultErrorType.NotFound, result.ErrorType);
             Assert.Contains("Authors not found", result.ErrorMessage);
         }
 
