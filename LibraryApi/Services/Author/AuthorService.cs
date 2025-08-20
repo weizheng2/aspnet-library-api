@@ -38,11 +38,11 @@ namespace LibraryApi.Services
             var query = _context.Authors.AsQueryable();
 
             // Filters
-            if (!string.IsNullOrEmpty(authorFilterDto.Names))
-                query = query.Where(a => a.FirstName.Contains(authorFilterDto.Names));
+            if (!string.IsNullOrEmpty(authorFilterDto.FirstName))
+                query = query.Where(a => a.FirstName.Contains(authorFilterDto.FirstName));
 
-            if (!string.IsNullOrEmpty(authorFilterDto.LastNames))
-                query = query.Where(a => a.LastName.Contains(authorFilterDto.LastNames));
+            if (!string.IsNullOrEmpty(authorFilterDto.LastName))
+                query = query.Where(a => a.LastName.Contains(authorFilterDto.LastName));
 
             if (authorFilterDto.HasBooks is not null)
                 query = authorFilterDto.HasBooks.Value ? query.Where(a => a.Books.Any()) : query.Where(a => !a.Books.Any());

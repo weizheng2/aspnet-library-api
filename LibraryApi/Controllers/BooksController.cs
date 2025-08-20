@@ -55,8 +55,12 @@ namespace LibraryApi.Controllers
                     book
                 );
             }
-
-            return NotFound(result.ErrorMessage);
+            
+            switch (result.ErrorType)
+            {
+                case ResultErrorType.NotFound: return NotFound(result.ErrorMessage);
+                default: return BadRequest(result.ErrorMessage);
+            }
         }
 
         [HttpPut("{id}")]

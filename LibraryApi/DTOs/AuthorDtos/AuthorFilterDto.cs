@@ -10,8 +10,8 @@ namespace LibraryApi.DTOs
 
     public class AuthorFilterDto
     {
-        public string? Names { get; set; }
-        public string? LastNames { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public bool? HasBooks { get; set; }
         public bool IncludeBooks { get; set; }
         public bool? HasPhoto { get; set; }
