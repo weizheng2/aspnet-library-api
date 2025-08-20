@@ -7,6 +7,7 @@ using LibraryApi.Models;
 using LibraryApi.Services;
 using LibraryApi.Swagger;
 using LibraryApi.Extensions;
+using LibraryApi.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,9 +25,7 @@ builder.Services.AddCustomCaching(builder.Configuration); // Redis Cache
 
 builder.Services.AddCustomApiVersioning();
 builder.Services.AddCustomSwagger();
-
-// TEST get strongly typed configuration data 
-//builder.Services.AddOptions<PersonOptions>().Bind(builder.Configuration.GetSection(PersonOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

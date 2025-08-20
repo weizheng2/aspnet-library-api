@@ -6,23 +6,24 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using LibraryApi.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace LibraryApi.Services
 {
     public class UserService : IUserService
     {
-        private readonly IConfiguration _configuration;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly JwtSettings _jwtSettings;
 
-        public UserService(IConfiguration configuration, UserManager<User> userManager,
-            SignInManager<User> signInManager, IHttpContextAccessor contextAccessor)
+        public UserService(UserManager<User> userManager, SignInManager<User> signInManager, IHttpContextAccessor contextAccessor, IOptions<JwtSettings> jwtOptions)
         {
             _userManager = userManager;
-            _configuration = configuration;
             _signInManager = signInManager;
             _contextAccessor = contextAccessor;
+            _jwtSettings = jwtOptions.Value;
         }
 
         public async Task<User?> GetUserById(string userId) => await _userManager.FindByIdAsync(userId);
@@ -56,15 +57,14 @@ namespace LibraryApi.Services
 
             claims.AddRange(existingClaims);
 
-            var jwtSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"]!));
+            var jwtSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SigningKey));
             var credentials = new SigningCredentials(jwtSigningKey, SecurityAlgorithms.HmacSha256);
 
-            var expirationMinutes = _configuration.GetValue<int>("Jwt:ExpirationMinutes");
-            var expiration = DateTime.UtcNow.AddMinutes(expirationMinutes);
+            var expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
 
             var securityToken = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
                 expires: expiration,
                 signingCredentials: credentials

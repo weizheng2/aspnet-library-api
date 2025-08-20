@@ -1,3 +1,5 @@
+using LibraryApi.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -9,17 +11,19 @@ namespace LibraryApi.Extensions
         {
             services.AddAuthentication().AddJwtBearer(options =>
             {
+                var jwtOptions = configuration.GetSection("Jwt").Get<JwtSettings>();
+
                 options.MapInboundClaims = false;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidIssuer = jwtOptions.Issuer,
                     ValidateAudience = true,
-                    ValidAudience =  configuration["Jwt:Audience"],
+                    ValidAudience = jwtOptions.Audience,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SigningKey"]!)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
                     ClockSkew = TimeSpan.Zero
                 };
             });
