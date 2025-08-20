@@ -91,7 +91,8 @@ Access the live API via Swagger (may take a few seconds to start if idle):
 ### Prerequisites
 - .NET 9.0 SDK
 - SQL Server
-
+- Redis (Optional)
+  
 ### Installation
 
 1. **Clone the repository**  
