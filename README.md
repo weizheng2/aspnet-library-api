@@ -17,7 +17,6 @@ A RESTful ASP.NET Core Web API demonstration for a **library management platform
 Access the live API via Swagger (may take a few seconds to start if idle):  
 [https://library-api.runasp.net/swagger/index.html](https://library-api.runasp.net/swagger/index.html)
 
----
 
 ## 📡 API Endpoints
 
@@ -84,7 +83,6 @@ Access the live API via Swagger (may take a few seconds to start if idle):
 
 </details>
 
----
 
 ## ⚙️ Getting Started
 
