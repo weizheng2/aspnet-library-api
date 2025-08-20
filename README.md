@@ -14,7 +14,7 @@ A RESTful ASP.NET Core Web API demonstration for a **library management platform
 - Azure Blob Storage for file uploads
 
 ## 🌐 Live Demo
-Access the live API via Swagger (may take a few seconds to start if idle):
+Access the live API via Swagger (may take a few seconds to start if idle):  
 [https://library-api.runasp.net/swagger/index.html](https://library-api.runasp.net/swagger/index.html)
 
 ---
@@ -94,11 +94,11 @@ Access the live API via Swagger (may take a few seconds to start if idle):
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repository**  
    `git clone https://github.com/weizheng2/aspnet-library-api.git`
 
 2. **Configure application settings**  
-   Update your appsettings.json, environment variables, or user-secrets with the required keys:
+   Update your appsettings.json, environment variables, or user-secrets with the required keys:  
    ```json
    {
      "ConnectionStrings": {
