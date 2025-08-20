@@ -5,7 +5,7 @@ using LibraryApi.Models;
 using LibraryApi.DTOs;
 using LibraryApi.Utils;
 
-namespace LibraryApi.Tests.Services
+namespace LibraryApi.UnitTests.Services
 {
     public class BookServiceTests : IDisposable
     {

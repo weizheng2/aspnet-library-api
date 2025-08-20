@@ -5,7 +5,7 @@ using LibraryApi.Utils;
 using LibraryApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LibraryApi.Tests.Services
+namespace LibraryApi.UnitTests.Services
 {
     public class AuthorsCollectionServiceTests : IDisposable
     {

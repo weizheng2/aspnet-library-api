@@ -10,7 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using LibraryApi.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace LibraryApi.Tests.Services
+namespace LibraryApi.UnitTests.Services
 {
     public class UserServiceTests
     {

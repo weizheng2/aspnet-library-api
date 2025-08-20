@@ -6,7 +6,7 @@ using LibraryApi.DTOs;
 using LibraryApi.Utils;
 using Moq;
 
-namespace LibraryApi.Tests.Services
+namespace LibraryApi.UnitTests.Services
 {
     public class CommentServiceTests : IDisposable
     {

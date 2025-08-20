@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Moq;
 
-namespace LibraryApi.Tests.Services
+namespace LibraryApi.UnitTests.Services
 {
     public class AuthorServiceTests : IDisposable
     {
