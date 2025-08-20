@@ -62,9 +62,6 @@ project.fragment.lock.json
 # ASP.NET-specific
 #################################
 ScaffoldingReadMe.txt
-LibraryApi/appsettings.Development.json
-LibraryApi/appsettings.json
-LibraryApi/Properties/
 
 #################################
 # Project-specific folders
