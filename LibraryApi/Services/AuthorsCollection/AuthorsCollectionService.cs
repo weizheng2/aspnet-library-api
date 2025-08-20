@@ -54,6 +54,19 @@ namespace LibraryApi.Services
                 .Where(id => !string.IsNullOrEmpty(id))
                 .ToList();
 
+            // Check for duplicates within the input list itself
+            if (inputIdentifications.Count != 0)
+            {
+                var duplicateIdentifications = inputIdentifications
+                    .GroupBy(id => id)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicateIdentifications.Count != 0)
+                    return Result<List<GetAuthorDto>>.Failure(ResultErrorType.BadRequest, $"Duplicate identifications found in input: {string.Join(", ", duplicateIdentifications)}");
+            }
+
             // Check if any already exist in the database
             if (inputIdentifications.Count != 0)
             {
